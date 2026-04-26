@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Built by JT — Access Your Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --card: #111;
+    --border: #222;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --text: #f0f0f0;
+    --muted: #555;
+    --muted2: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── BACKGROUND ── */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.35;
+    mask-image: radial-gradient(ellipse at 50% 40%, black 20%, transparent 75%);
+  }
+
+  .bg-glow {
+    position: fixed; top: -300px; left: 50%; transform: translateX(-50%);
+    width: 900px; height: 900px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,255,71,0.055) 0%, transparent 65%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .bg-noise {
+    position: fixed; inset: 0; z-index: 0; opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 40px;
+    background: rgba(10,10,10,0.85); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: 3px;
+    color: var(--accent); line-height: 1;
+    text-decoration: none;
+  }
+  .nav-logo-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); vertical-align: middle; margin-left: 2px;
+  }
+  .nav-tagline {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted2);
+  }
+  .nav-buy {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 12px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.5px;
+    color: var(--muted2);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .nav-buy:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── MAIN CARD ── */
+  .login-wrap {
+    position: relative; z-index: 10;
+    width: 100%; max-width: 420px;
+    padding: 20px;
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .login-eyebrow {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 4px; text-transform: uppercase;
+    color: var(--accent);
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 18px;
+  }
+  .login-eyebrow::before {
+    content: ''; display: block;
+    width: 28px; height: 1px;
+    background: var(--accent);
+  }
+
+  .login-heading {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 10vw, 72px);
+    letter-spacing: 1px; line-height: 0.92;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .login-heading .accent { color: var(--accent); }
+
+  .login-sub {
+    font-size: 14px; color: var(--muted2);
+    line-height: 1.6; margin-bottom: 36px;
+    max-width: 340px;
+  }
+
+  /* ── FORM ── */
+  .form-group {
+    position: relative; margin-bottom: 14px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
+  }
+
+  .form-input {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-size: 15px; font-weight: 400;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .form-input::placeholder { color: var(--muted); }
+
+  .form-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232, 255, 71, 0.08);
+  }
+
+  .form-input.error {
+    border-color: #ff4444;
+    box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.08);
+  }
+
+  .form-error {
+    font-size: 12px; color: #ff4444;
+    margin-top: 6px; display: none;
+  }
+  .form-error.visible { display: block; }
+
+  /* ── SUBMIT BUTTON ── */
+  .btn-submit {
+    width: 100%;
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none; border-radius: 10px;
+    padding: 16px 24px;
+    font-size: 14px; font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: opacity 0.15s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-submit:hover:not(:disabled) {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
+
+  .btn-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-submit .btn-text { transition: opacity 0.2s; }
+  .btn-submit .btn-spinner {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s;
+  }
+
+  .btn-submit.loading .btn-text { opacity: 0; }
+  .btn-submit.loading .btn-spinner { opacity: 1; }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .spinner-ring {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(10,10,10,0.2);
+    border-top-color: #0a0a0a;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  /* ── SUCCESS STATE ── */
+  .success-panel {
+    display: none;
+    text-align: center;
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  .success-panel.visible { display: block; }
+
+  .success-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(232, 255, 71, 0.1);
+    border: 1px solid rgba(232, 255, 71, 0.3);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 28px;
+  }
+
+  .success-heading {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px; letter-spacing: 1px;
+    color: var(--text); margin-bottom: 12px;
+  }
+
+  .success-sub {
+    font-size: 14px; color: var(--muted2);
+    line-height: 1.6; margin-bottom: 28px;
+  }
+
+  .success-email-highlight {
+    color: var(--accent); font-weight: 600;
+  }
+
+  .resend-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 13px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--muted2);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .resend-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .resend-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .resend-countdown {
+    font-size: 12px; color: var(--muted);
+    margin-top: 10px;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    display: flex; align-items: center; gap: 14px;
+    margin: 28px 0;
+  }
+  .divider-line { flex: 1; height: 1px; background: var(--border); }
+  .divider-text {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── PURCHASE LINK ── */
+  .no-account {
+    font-size: 13px; color: var(--muted2);
+    text-align: center; line-height: 1.7;
+  }
+  .no-account a {
+    color: var(--accent); font-weight: 600;
+    text-decoration: none;
+  }
+  .no-account a:hover { text-decoration: underline; }
+
+  /* ── FOOTER NOTE ── */
+  .footer-note {
+    position: fixed; bottom: 24px;
+    font-size: 11px; color: var(--muted);
+    letter-spacing: 0.5px;
+    z-index: 10;
+    text-align: center;
+    padding: 0 20px;
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 480px) {
+    nav { padding: 16px 20px; }
+    .nav-tagline { display: none; }
+    .login-wrap { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="bg-noise"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-logo">BUILT <span class="nav-logo-sub">by JT</span></a>
+  <div class="nav-tagline">Built Not Born</div>
+  <a href="https://trigonaut2.gumroad.com/l/mbyram" target="_blank" class="nav-buy">Get Access →</a>
+</nav>
+
+<!-- LOGIN CARD -->
+<div class="login-wrap">
+
+  <!-- FORM VIEW -->
+  <div id="formPanel">
+    <div class="login-eyebrow">Member Access</div>
+    <h1 class="login-heading">LOG<br><span class="accent">IN.</span></h1>
+    <p class="login-sub">Enter your email and we'll send you a magic link — no password needed.</p>
+
+    <div class="form-group">
+      <label class="form-label" for="emailInput">Email Address</label>
+      <input
+        class="form-input"
+        type="email"
+        id="emailInput"
+        placeholder="you@email.com"
+        autocomplete="email"
+        inputmode="email"
+        autofocus
+      />
+      <div class="form-error" id="emailError">Please enter a valid email address.</div>
+    </div>
+
+    <button class="btn-submit" id="submitBtn" onclick="handleLogin()">
+      <span class="btn-text">Send Magic Link →</span>
+      <span class="btn-spinner"><div class="spinner-ring"></div></span>
+    </button>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-text">New here?</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <p class="no-account">
+      Don't have an account?
+      <a href="https://trigonaut2.gumroad.com/l/mbyram" target="_blank">Start your free 7-day trial →</a>
+    </p>
+  </div>
+
+  <!-- SUCCESS VIEW -->
+  <div id="successPanel" class="success-panel">
+    <div class="success-icon">✉️</div>
+    <h2 class="success-heading">CHECK YOUR EMAIL.</h2>
+    <p class="success-sub">
+      We sent a magic link to<br>
+      <span class="success-email-highlight" id="successEmail"></span><br><br>
+      Click it to access your training. The link expires in 60 minutes.
+    </p>
+    <button class="resend-btn" id="resendBtn" onclick="handleResend()">Resend Link</button>
+    <div class="resend-countdown" id="resendCountdown"></div>
+  </div>
+
+</div>
+
+<div class="footer-note">Purchased access? Use the same email you bought with.</div>
+
+<script>
+  // ─────────────────────────────────────────────
+  // CONFIG — replace these with your real values
+  // ─────────────────────────────────────────────
+  const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU';
+  const APP_URL = 'https://builtbyjt.netlify.app/workout.html';
+  // ─────────────────────────────────────────────
+
+  const _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let lastEmail = '';
+  let resendTimer = null;
+
+  // ── On load: if user already has a session, redirect to app ──
+  (async function checkExistingSession() {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session) {
+      redirectToApp(session);
+    }
+  })();
+
+  // ── Handle auth state change (when user clicks magic link) ──
+  _sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      redirectToApp(session);
+    }
+  });
+
+  async function redirectToApp(session) {
+    // Check paid status before redirecting
+    const { data: profile } = await _sb
+      .from('profiles')
+      .select('is_paid, subscription_status')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profile?.is_paid && profile.subscription_status === 'active') {
+      window.location.href = APP_URL;
+    } else {
+      // Signed in but not paid — send to purchase
+      showUnpaidMessage();
+    }
+  }
+
+  function showUnpaidMessage() {
+    const formPanel = document.getElementById('formPanel');
+    formPanel.innerHTML = `
+      <div class="login-eyebrow">Access Required</div>
+      <h1 class="login-heading" style="font-size:52px;">NO<br><span class="accent">ACCESS.</span></h1>
+      <p class="login-sub" style="margin-bottom:28px;">
+        Your account doesn't have an active subscription. 
+        Purchase access to unlock the full training system.
+      </p>
+      <a href="https://trigonaut2.gumroad.com/l/mbyram" target="_blank" class="btn-submit" style="display:block;text-align:center;text-decoration:none;padding:16px 24px;border-radius:10px;font-weight:700;font-size:14px;font-family:'DM Sans',sans-serif;letter-spacing:0.5px;">
+        Start Free — 7 Days →
+      </a>
+    `;
+  }
+
+  async function handleLogin() {
+    const input = document.getElementById('emailInput');
+    const btn = document.getElementById('submitBtn');
+    const errorEl = document.getElementById('emailError');
+    const email = input.value.trim().toLowerCase();
+
+    // Validate
+    if (!email || !isValidEmail(email)) {
+      input.classList.add('error');
+      errorEl.classList.add('visible');
+      input.focus();
+      return;
+    }
+
+    input.classList.remove('error');
+    errorEl.classList.remove('visible');
+
+    // Loading state
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+      const { error } = await _sb.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: APP_URL,
+        }
+      });
+
+      if (error) throw error;
+
+      lastEmail = email;
+      showSuccess(email);
+
+    } catch (err) {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+
+      // Show friendly error
+      errorEl.textContent = err.message?.includes('rate limit')
+        ? 'Too many attempts. Please wait a minute and try again.'
+        : 'Something went wrong. Please try again.';
+      errorEl.classList.add('visible');
+      input.classList.add('error');
+    }
+  }
+
+  function showSuccess(email) {
+    document.getElementById('formPanel').style.display = 'none';
+    const panel = document.getElementById('successPanel');
+    document.getElementById('successEmail').textContent = email;
+    panel.classList.add('visible');
+    startResendCooldown(60);
+  }
+
+  async function handleResend() {
+    if (!lastEmail) return;
+    const btn = document.getElementById('resendBtn');
+    btn.disabled = true;
+
+    try {
+      await _sb.auth.signInWithOtp({
+        email: lastEmail,
+        options: { emailRedirectTo: APP_URL }
+      });
+      startResendCooldown(60);
+    } catch (err) {
+      btn.disabled = false;
+    }
+  }
+
+  function startResendCooldown(seconds) {
+    const btn = document.getElementById('resendBtn');
+    const countdown = document.getElementById('resendCountdown');
+    btn.disabled = true;
+    let remaining = seconds;
+
+    countdown.textContent = `You can resend in ${remaining}s`;
+
+    clearInterval(resendTimer);
+    resendTimer = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(resendTimer);
+        btn.disabled = false;
+        countdown.textContent = '';
+      } else {
+        countdown.textContent = `You can resend in ${remaining}s`;
+      }
+    }, 1000);
+  }
+
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // ── Enter key submits ──
+  document.getElementById('emailInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleLogin();
+  });
+
+  // ── Clear error on type ──
+  document.getElementById('emailInput').addEventListener('input', function() {
+    this.classList.remove('error');
+    document.getElementById('emailError').classList.remove('visible');
+  });
+</script>
+</body>
+</html>

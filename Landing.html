@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Built by JT — Built Not Born</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --card: #111;
+    --border: #222;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --text: #f0f0f0;
+    --muted: #555;
+    --muted2: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 40px;
+    background: rgba(10,10,10,0.85); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: var(--accent); line-height: 1; }
+  .nav-logo-sub { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); vertical-align: middle; margin-left: 2px; }
+  .nav-tagline { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted2); }
+  .nav-cta {
+    background: var(--accent); color: #0a0a0a;
+    border: none; border-radius: 8px;
+    padding: 10px 22px; font-size: 13px; font-weight: 700;
+    font-family: 'DM Sans', sans-serif; letter-spacing: 0.5px;
+    cursor: pointer; text-decoration: none;
+    transition: transform 0.15s, opacity 0.15s;
+  }
+  .nav-cta:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 120px 40px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero-noise {
+    position: absolute; inset: 0; z-index: 0; opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px; opacity: 0.4;
+    mask-image: radial-gradient(ellipse at 50% 50%, black 30%, transparent 80%);
+  }
+  .hero-glow {
+    position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+    width: 800px; height: 800px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,255,71,0.06) 0%, transparent 70%);
+    z-index: 0;
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 800px; }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+  }
+  .hero-eyebrow::before { content: ''; display: block; width: 32px; height: 1px; background: var(--accent); }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(72px, 12vw, 140px);
+    line-height: 0.9; letter-spacing: 2px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .hero-title .accent { color: var(--accent); }
+  .hero-title .stroke {
+    -webkit-text-stroke: 1px var(--border);
+    color: transparent;
+  }
+  .hero-sub {
+    font-size: clamp(16px, 2.5vw, 22px); font-weight: 300;
+    color: var(--muted2); line-height: 1.5;
+    max-width: 520px; margin: 28px 0 48px;
+  }
+  .hero-sub strong { color: var(--text); font-weight: 600; }
+  .hero-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--accent); color: #0a0a0a;
+    border: none; border-radius: 10px;
+    padding: 16px 36px; font-size: 15px; font-weight: 700;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 0 40px rgba(232,255,71,0.2);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 60px rgba(232,255,71,0.35); }
+  .btn-ghost {
+    background: transparent; color: var(--muted2);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 28px; font-size: 14px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--muted2); color: var(--text); }
+  .hero-price-note { font-size: 12px; color: var(--muted); margin-top: 14px; }
+  .hero-price-note strong { color: var(--accent); }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    background: var(--card);
+  }
+  .stat {
+    padding: 32px 40px; border-right: 1px solid var(--border);
+    text-align: center;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-val {
+    font-family: 'Bebas Neue', sans-serif; font-size: 52px;
+    letter-spacing: 1px; color: var(--accent); line-height: 1;
+  }
+  .stat-label { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted2); margin-top: 6px; }
+
+  /* ── SECTION ── */
+  section { padding: 100px 40px; max-width: 1100px; margin: 0 auto; }
+  .section-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 6vw, 72px);
+    letter-spacing: 1px; line-height: 1; margin-bottom: 16px;
+  }
+  .section-title .accent { color: var(--accent); }
+  .section-sub { font-size: 16px; color: var(--muted2); max-width: 520px; line-height: 1.6; margin-bottom: 60px; }
+
+  /* ── WHAT YOU GET ── */
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2px; }
+  .feature {
+    background: var(--card); padding: 36px 32px;
+    border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .feature:hover { border-color: #333; }
+  .feature-icon { font-size: 28px; margin-bottom: 18px; display: block; }
+  .feature-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; color: var(--text); margin-bottom: 10px; }
+  .feature-desc { font-size: 14px; color: var(--muted2); line-height: 1.6; }
+  .feature-accent {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .feature:hover .feature-accent { opacity: 1; }
+
+  /* ── HOW IT WORKS ── */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid; grid-template-columns: 80px 1fr;
+    gap: 0 32px; padding: 40px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif; font-size: 72px;
+    color: var(--border); line-height: 1; letter-spacing: -2px;
+    transition: color 0.2s;
+  }
+  .step:hover .step-num { color: var(--accent); }
+  .step-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; margin-bottom: 10px; }
+  .step-desc { font-size: 14px; color: var(--muted2); line-height: 1.7; max-width: 480px; }
+
+  /* ── BOOKS ── */
+  .books-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .book-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 28px;
+    display: flex; gap: 20px; align-items: flex-start;
+    transition: border-color 0.2s;
+  }
+  .book-card:hover { border-color: #333; }
+  .book-spine {
+    width: 6px; border-radius: 3px; flex-shrink: 0; align-self: stretch;
+  }
+  .book-info { flex: 1; }
+  .book-title { font-weight: 700; font-size: 15px; color: var(--text); margin-bottom: 6px; }
+  .book-author { font-size: 12px; color: var(--muted2); margin-bottom: 12px; }
+  .book-desc { font-size: 13px; color: var(--muted2); line-height: 1.6; }
+
+  /* ── PRICING ── */
+  .pricing-wrap { display: flex; justify-content: center; }
+  .pricing-card {
+    background: var(--card); border: 1px solid #333;
+    border-radius: 16px; padding: 48px;
+    max-width: 440px; width: 100%;
+    position: relative; overflow: hidden;
+    box-shadow: 0 0 80px rgba(232,255,71,0.05);
+  }
+  .pricing-badge {
+    position: absolute; top: 24px; right: 24px;
+    background: var(--accent); color: #0a0a0a;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px;
+  }
+  .pricing-tier { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--muted2); margin-bottom: 12px; }
+  .pricing-price {
+    font-family: 'Bebas Neue', sans-serif; font-size: 80px;
+    color: var(--accent); line-height: 1; letter-spacing: -1px;
+    margin-bottom: 4px;
+  }
+  .pricing-price span { font-size: 28px; color: var(--muted2); }
+  .pricing-billing { font-size: 13px; color: var(--muted); margin-bottom: 36px; }
+  .pricing-divider { height: 1px; background: var(--border); margin-bottom: 32px; }
+  .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 14px; margin-bottom: 40px; }
+  .pricing-features li {
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 14px; color: var(--muted2); line-height: 1.4;
+  }
+  .pricing-features li::before {
+    content: '✓'; color: var(--accent); font-weight: 700;
+    font-size: 13px; flex-shrink: 0; margin-top: 1px;
+  }
+  .pricing-cta {
+    width: 100%; padding: 16px; background: var(--accent); color: #0a0a0a;
+    border: none; border-radius: 10px; font-size: 15px; font-weight: 700;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none;
+    display: block; text-align: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 0 40px rgba(232,255,71,0.15);
+  }
+  .pricing-cta:hover { transform: translateY(-2px); box-shadow: 0 0 60px rgba(232,255,71,0.3); }
+  .pricing-note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 16px; }
+
+  /* ── ABOUT ── */
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .about-text p { font-size: 15px; color: var(--muted2); line-height: 1.8; margin-bottom: 20px; }
+  .about-text p strong { color: var(--text); }
+  .about-quote {
+    border-left: 2px solid var(--accent); padding-left: 24px;
+    font-size: 20px; font-style: italic; color: var(--text);
+    font-weight: 300; line-height: 1.5; margin: 32px 0;
+  }
+  .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .about-stat {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px;
+  }
+  .about-stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--accent); }
+  .about-stat-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted2); margin-top: 4px; }
+
+  /* ── FAQ ── */
+  .faq { display: flex; flex-direction: column; gap: 0; }
+  .faq-item { border-bottom: 1px solid var(--border); }
+  .faq-q {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 0; cursor: pointer;
+    font-size: 16px; font-weight: 600; color: var(--text);
+    transition: color 0.2s;
+    list-style: none;
+  }
+  .faq-q:hover { color: var(--accent); }
+  .faq-q::after { content: '+'; font-size: 22px; font-weight: 300; color: var(--muted); transition: transform 0.2s; }
+  details[open] .faq-q::after { transform: rotate(45deg); color: var(--accent); }
+  .faq-a { font-size: 14px; color: var(--muted2); line-height: 1.7; padding-bottom: 24px; max-width: 600px; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px; text-align: center;
+    font-size: 12px; color: var(--muted);
+  }
+  footer .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px; color: var(--accent); margin-bottom: 8px; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.7s ease forwards; }
+  .delay-1 { animation-delay: 0.1s; opacity: 0; }
+  .delay-2 { animation-delay: 0.2s; opacity: 0; }
+  .delay-3 { animation-delay: 0.35s; opacity: 0; }
+  .delay-4 { animation-delay: 0.5s; opacity: 0; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-tagline { display: none; }
+    .hero { padding: 100px 20px 60px; }
+    section { padding: 70px 20px; }
+    .stats-bar { grid-template-columns: 1fr; }
+    .stat { border-right: none; border-bottom: 1px solid var(--border); }
+    .stat:last-child { border-bottom: none; }
+    .about-grid { grid-template-columns: 1fr; gap: 40px; }
+    .step { grid-template-columns: 50px 1fr; gap: 0 20px; }
+    .step-num { font-size: 48px; }
+    .pricing-card { padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div>
+    <div class="nav-logo">BUILT <span class="nav-logo-sub">by JT</span></div>
+  </div>
+  <div class="nav-tagline">Built Not Born</div>
+  <a href="https://trigonaut2.gumroad.com/l/mbyram" target="_blank" class="nav-cta">Start Free — 7 Days</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" style="max-width:100%; padding-left:max(40px, 5vw); padding-right:max(40px, 5vw);">
+  <div class="hero-noise"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow fade-up">Training System</div>
+    <div class="hero-title fade-up delay-1">
+      BUILT<br>
+      <span class="accent">NOT</span><br>
+      <span class="stroke">BORN</span>
+    </div>
+    <p class="hero-sub fade-up delay-2">
+      This isn't just a workout app. It's the complete blueprint — <strong>programming, macros, and supplements</strong> all dialed in. Built for people serious about building.
+    </p>
+    <div class="hero-actions fade-up delay-3">
+      <a href="https://trigonaut2.gumroad.com/l/mbyram" target="_blank" class="btn-primary">Try It Free — 7 Days →</a>
+      <a href="#what-you-get" class="btn-ghost">See what's inside</a>
+    </div>
+    <p class="hero-price-note fade-up delay-4"><strong>7 days free.</strong> Then $19/month. Cancel anytime.</p>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-val">6</div>
+    <div class="stat-label">Day Training Split</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">3</div>
+    <div class="stat-label">Book Methodologies</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">$19</div>
+    <div class="stat-label">Per Month, All In</div>
+  </div>
+</div>
+
+<!-- WHAT YOU GET -->
+<section id="what-you-get">
+  <div class="section-label">What's Included</div>
+  <h2 class="section-title">EVERYTHING YOU NEED<br>TO <span class="accent">BUILD</span></h2>
+  <p class="section-sub">One subscription. Your full training system — program, nutrition, and supplement guidance all in one place.</p>
+  <div class="features-grid">
+    <div class="feature">
+      <span class="feature-icon">🏋️</span>
+      <div class="feature-title">6-Day Training Program</div>
+      <div class="feature-desc">A full 3-week rotating split covering chest, back, shoulders, legs, arms. Heavy week, moderate week, high-rep week — Three weeks. Three intensities. Zero plateaus.</div>
+      <div class="feature-accent"></div>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">📖</span>
+      <div class="feature-title">Pro Execution Cues</div>
+      <div class="feature-desc">Detailed execution cues on every exercise. The difference between going through the motions and actually building.</div>
+      <div class="feature-accent"></div>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">🥩</span>
+      <div class="feature-title">Macro Calculator</div>
+      <div class="feature-desc">Precision macros based on peer-reviewed sports nutrition science. No guessing, no bro math.</div>
+      <div class="feature-accent"></div>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">💊</span>
+      <div class="feature-title">Supplement Guide</div>
+      <div class="feature-desc">Science-ranked supplements with exact dosing. Know what's worth your money (creatine, fish oil, vitamin D) and what to skip — backed by peer-reviewed research.</div>
+      <div class="feature-accent"></div>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">📅</span>
+      <div class="feature-title">Cycle Tracker</div>
+      <div class="feature-desc">Track where you are in your 3-week Training cycle. Advance weeks, log your progress, and never lose track of where you are in the program.</div>
+      <div class="feature-accent"></div>
+    </div>
+    <div class="feature">
+      <span class="feature-icon">🇪🇸</span>
+      <div class="feature-title">English & Spanish</div>
+      <div class="feature-desc">Full bilingual support. Switch the entire app between English and Spanish with one tap — every label, exercise name, and principle card translates instantly.</div>
+      <div class="feature-accent"></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works" style="border-top: 1px solid var(--border); padding-top: 100px;">
+  <div class="section-label">How It Works</div>
+  <h2 class="section-title">SIMPLE.<br><span class="accent">CONSISTENT.</span><br>EFFECTIVE.</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div>
+        <div class="step-title">Subscribe & Get Access</div>
+        <p class="step-desc">$19/month, cancel anytime. You get immediate access to the full app — no downloads, no installs. Open it in any browser and save it to your home screen.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div>
+        <div class="step-title">Set Up Your Nutrition</div>
+        <p class="step-desc">Use the built-in macro calculator to find your target calories and macros based on your bodyweight, activity level, and goal — whether you're cutting, bulking, or maintaining.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div>
+        <div class="step-title">Start Your First Cycle</div>
+        <p class="step-desc">Week 1 is heavy — low reps, high load. Week 2 moderate. Week 3 high rep and metabolic. The app tells you exactly what to do and how to do it. Just train.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div>
+        <div class="step-title">Advance & Repeat</div>
+        <p class="step-desc">After Week 3, start a new cycle and push for progressive overload. The program is designed to be run repeatedly — each cycle you get stronger.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THE SYSTEM -->
+
+<!-- PRICING -->
+<section id="pricing" style="border-top: 1px solid var(--border); padding-top: 100px;">
+  <div class="section-label">Pricing</div>
+  <h2 class="section-title">START FREE.<br><span class="accent">SCALE</span><br>YOUR WAY.</h2>
+  <p class="section-sub" style="margin-bottom: 60px;">Try it free for 7 days. Then pick the plan that matches where you're at.</p>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; max-width: 960px; margin: 0 auto;">
+
+    <!-- BASIC -->
+    <div class="pricing-card" style="border-color: var(--border);">
+      <div class="pricing-tier">Basic</div>
+      <div class="pricing-price"><span>$</span>19</div>
+      <div class="pricing-billing">per month · billed monthly · cancel anytime</div>
+      <div class="pricing-divider"></div>
+      <ul class="pricing-features">
+        <li>Full 6-day training program</li>
+        <li>All 3 weeks — sets, reps, rest periods</li>
+        <li>Pro execution cues on every exercise</li>
+        <li>Cycle tracker — always know where you are</li>
+        <li>Macro calculator — run it yourself</li>
+        <li>Supplement guide with dosing</li>
+        <li>English & Spanish support</li>
+        <li>Works on any device</li>
+      </ul>
+      <a href="https://trigonaut2.gumroad.com/l/mbyram" target="_blank" class="pricing-cta" style="background: transparent; border: 1.5px solid var(--accent); color: var(--accent); box-shadow: none;">Get Started →</a>
+      <p class="pricing-note">7-day free trial · then $19/month · cancel anytime</p>
+    </div>
+
+    <!-- COACHING -->
+    <div class="pricing-card" style="border-color: var(--accent); box-shadow: 0 0 60px rgba(232,255,71,0.08);">
+      <div class="pricing-badge">Most Popular</div>
+      <div class="pricing-tier">Coaching</div>
+      <div class="pricing-price"><span>$</span>99</div>
+      <div class="pricing-billing">per month · includes Basic · limited spots</div>
+      <div class="pricing-divider"></div>
+      <ul class="pricing-features">
+        <li>Everything in Basic</li>
+        <li>JT personally reviews & sets your macros</li>
+        <li>Supplement stack dialed in for your goal</li>
+        <li>Monthly check-in — adjust if it's not working</li>
+        <li>Direct access via DM</li>
+        <li>Nutrition adjusted as you progress</li>
+      </ul>
+      <a href="https://trigonaut2.gumroad.com/l/ebbir" target="_blank" class="pricing-cta">Apply for Coaching →</a>
+      <p class="pricing-note">Limited spots · Application required</p>
+    </div>
+
+    <!-- VIP -->
+    <div class="pricing-card" style="border-color: var(--accent2); box-shadow: 0 0 60px rgba(255,107,53,0.06);">
+      <div class="pricing-badge" style="background: var(--accent2);">Best Results</div>
+      <div class="pricing-tier">VIP</div>
+      <div class="pricing-price" style="color: var(--accent2);"><span>$</span>199</div>
+      <div class="pricing-billing">per month · includes Coaching · very limited</div>
+      <div class="pricing-divider"></div>
+      <ul class="pricing-features">
+        <li>Everything in Coaching</li>
+        <li>Weekly check-ins instead of monthly</li>
+        <li>Custom program tweaks every cycle</li>
+        <li>Nutrition periodization — macros evolve with you</li>
+        <li>Priority response within 24 hours</li>
+        <li>JT as your dedicated personal coach</li>
+      </ul>
+      <a href="https://trigonaut2.gumroad.com/l/biqecd" target="_blank" class="pricing-cta" style="background: var(--accent2); box-shadow: 0 0 40px rgba(255,107,53,0.2);">Apply for VIP →</a>
+      <p class="pricing-note">Very limited spots · Application required</p>
+    </div>
+
+  </div>
+
+  <!-- LICENSING CALLOUT -->
+  <div style="max-width: 960px; margin: 24px auto 0;">
+    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 32px 36px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">For Coaches</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--text);margin-bottom:6px;">License This System For Your Clients</div>
+        <div style="font-size:14px;color:var(--muted2);max-width:500px;">White-label the app with your branding. Generate custom programs for your clients in minutes. Built for coaches who want to deliver more and work less.</div>
+      </div>
+      <a href="#" style="background: transparent; border: 1px solid var(--border); border-radius: 10px; padding: 14px 28px; font-size:13px; font-weight:700; color:var(--text); text-decoration:none; white-space:nowrap; transition: border-color 0.2s, color 0.2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">Inquire About Licensing →</a>
+    </div>
+  </div>
+
+</section>
+
+<!-- ABOUT -->
+<section id="about" style="border-top: 1px solid var(--border); padding-top: 100px;">
+  <div class="section-label">About JT</div>
+  <div class="about-grid">
+    <div class="about-text">
+      <h2 class="section-title" style="margin-bottom: 28px;">WHO<br><span class="accent">BUILT</span><br>THIS.</h2>
+      <p>This isn't a generic app built by a software company. It was built by someone who has lived this program — every set, every cycle, every meal.</p>
+      <p>Every exercise selection, every cue, every macro formula — it's what I actually use. I built this because I couldn't find a tool that combined <strong>real programming with real nutrition in one place.</strong></p>
+      <div class="about-quote">"Built Not Born means you earn every rep of what you become."</div>
+      <p>If you're serious about building — not just going through the motions — this is the system for you.</p>
+    </div>
+    <div class="about-stats">
+      <div class="about-stat">
+        <div class="about-stat-val">Training</div>
+        <div class="about-stat-label">Training Method</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-val">3×</div>
+        <div class="about-stat-label">Weekly Intensity Rotation</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-val">6</div>
+        <div class="about-stat-label">Days Per Week</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-val">∞</div>
+        <div class="about-stat-label">Cycles, No Plateau</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" style="border-top: 1px solid var(--border); padding-top: 100px;">
+  <div class="section-label">FAQ</div>
+  <h2 class="section-title">QUESTIONS?<br><span class="accent">ANSWERED.</span></h2>
+  <div class="faq" style="margin-top: 48px;">
+    <details class="faq-item">
+      <summary class="faq-q">What is this training system?</summary>
+      <p class="faq-a">This program uses a 3-week rotating intensity cycle developed by elite bodybuilding coach an elite bodybuilding coach. It uses a 3-week rotating intensity cycle — Week 1 is heavy and low rep, Week 2 is moderate, Week 3 is high rep and metabolic. This rotation prevents adaptation and maximizes muscle growth over time.</p>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-q">Do I need to download anything?</summary>
+      <p class="faq-a">No. The app runs entirely in your browser. You can save it to your phone's home screen and it works like a native app — no App Store, no downloads required.</p>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-q">Is this suitable for beginners?</summary>
+      <p class="faq-a">Training is an intermediate to advanced program. If you've been training consistently for at least 6 months and understand compound lifts, this program will take you to the next level. Complete beginners should build a foundation first.</p>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-q">How does the macro calculator work?</summary>
+      <p class="faq-a">It uses a leading sports nutrition researcher' formula from The Muscle & Strength Nutrition Pyramid: your bodyweight × 10 as a baseline, multiplied by an activity multiplier. From there it sets protein, fat, and carbs based on whether you're cutting, bulking, or maintaining — all based on peer-reviewed research.</p>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-q">Is there really a free trial?</summary>
+      <p class="faq-a">Yes. You get full access to the entire app for 7 days completely free. Your card is required to start but you won't be charged until day 8. Cancel any time before that and you pay nothing.</p>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-q">Can I cancel anytime?</summary>
+      <p class="faq-a">Yes. No contracts, no cancellation fees. Cancel before your next billing date and you won't be charged again. You keep access until the end of your billing period.</p>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-q">Is there a Spanish version?</summary>
+      <p class="faq-a">Yes. The entire app — every exercise name, label, principle card, and day tab — can be switched between English and Spanish with one tap. Built for bilingual athletes.</p>
+    </details>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section style="border-top: 1px solid var(--border); text-align: center; padding: 100px 40px;">
+  <div class="section-label" style="justify-content: center;">Ready?</div>
+  <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(52px, 8vw, 100px); letter-spacing: 1px; line-height: 1; margin-bottom: 24px;">
+    STOP GUESSING.<br><span style="color: var(--accent);">START BUILDING.</span>
+  </h2>
+  <p style="font-size: 16px; color: var(--muted2); max-width: 420px; margin: 0 auto 40px; line-height: 1.6;">
+    Everything you need to train harder, eat smarter, and build the physique you're working for.
+  </p>
+  <a href="https://trigonaut2.gumroad.com/l/mbyram" target="_blank" class="btn-primary" style="font-size: 16px; padding: 18px 44px;">Try It Free for 7 Days →</a>
+  <p style="font-size: 12px; color: var(--muted); margin-top: 16px;">No charge for 7 days · Then $19/month · Cancel anytime</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">BUILT <span style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);vertical-align:middle;">by JT</span></div>
+  <div>Built Not Born · © 2026 Built by JT</div>
+</footer>
+
+<script>
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.feature, .step, .book-card, .about-stat, .faq-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
