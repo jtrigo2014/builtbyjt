@@ -53,10 +53,12 @@ exports.handler = async (event) => {
       userId = existingUser.id;
     } else {
       // Create new user
-      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        email,
-        email_confirm: true,
-      });
+    const tempPassword = Math.random().toString(36).slice(-8) + '!A1';
+    const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+    email,
+    password: tempPassword,
+    email_confirm: true,
+    });
       if (createError) throw createError;
       userId = newUser.user.id;
     }
@@ -74,13 +76,13 @@ exports.handler = async (event) => {
 
     if (updateError) throw updateError;
 
-    // Send magic link email
-    const { error: linkError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email,
-      options: {
-        redirectTo: 'https://builtbyjt.netlify.app/workout.html'
-      }
+    // Send password reset email so user can set their own password
+    await supabase.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: {
+      redirectTo: 'https://builtbyjt.vercel.app/reset.html'
+    }
     });
 
     if (linkError) console.error('Magic link error:', linkError);
