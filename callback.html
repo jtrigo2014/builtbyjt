@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Built by JT — Logging you in...</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #f0f0f0;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at 50% 50%, black 20%, transparent 75%);
+  }
+
+  .content {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px; letter-spacing: 3px;
+    color: #e8ff47;
+    margin-bottom: 32px;
+  }
+
+  .spinner {
+    width: 40px; height: 40px;
+    border: 2px solid #222;
+    border-top-color: #e8ff47;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 24px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .status {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #555;
+  }
+
+  .error-box {
+    display: none;
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #888;
+    line-height: 1.6;
+    max-width: 320px;
+  }
+
+  .error-box a {
+    color: #e8ff47;
+    text-decoration: none;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<div class="content">
+  <div class="logo">BUILT <span style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;color:#444;vertical-align:middle;">by JT</span></div>
+  <div class="spinner" id="spinner"></div>
+  <div class="status" id="status">Logging you in...</div>
+  <div class="error-box" id="errorBox">
+    Link expired or already used.<br>
+    <a href="/login.html">Request a new link →</a>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU';
+  const APP_URL = '/workout.html';
+
+  const _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      detectSessionInUrl: true,
+    }
+  });
+
+  function setStatus(msg) {
+    document.getElementById('status').textContent = msg;
+  }
+
+  function showError() {
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('errorBox').style.display = 'block';
+    setStatus('Something went wrong');
+  }
+
+  async function handleCallback() {
+    // Supabase automatically reads the token from the URL hash
+    const { data: { session }, error } = await _sb.auth.getSession();
+
+    if (error) {
+      console.error('Session error:', error);
+      showError();
+      return;
+    }
+
+    if (session) {
+      setStatus('Checking access...');
+
+      const { data: profile, error: profileError } = await _sb
+        .from('profiles')
+        .select('is_paid, subscription_status')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        showError();
+        return;
+      }
+
+      if (profile?.is_paid && profile.subscription_status === 'active') {
+        setStatus('Welcome back!');
+        setTimeout(() => {
+          window.location.href = APP_URL;
+        }, 500);
+      } else {
+        setStatus('No active subscription');
+        setTimeout(() => {
+          window.location.href = 'https://trigonaut2.gumroad.com/l/mbyram';
+        }, 1500);
+      }
+    } else {
+      // No session yet — listen for auth state change
+      _sb.auth.onAuthStateChange(async (event, newSession) => {
+        if (event === 'SIGNED_IN' && newSession) {
+          setStatus('Checking access...');
+
+          const { data: profile } = await _sb
+            .from('profiles')
+            .select('is_paid, subscription_status')
+            .eq('id', newSession.user.id)
+            .single();
+
+          if (profile?.is_paid && profile.subscription_status === 'active') {
+            setStatus('Welcome back!');
+            setTimeout(() => {
+              window.location.href = APP_URL;
+            }, 500);
+          } else {
+            setStatus('No active subscription');
+            setTimeout(() => {
+              window.location.href = 'https://trigonaut2.gumroad.com/l/mbyram';
+            }, 1500);
+          }
+        } else if (event === 'SIGNED_OUT' || !newSession) {
+          showError();
+        }
+      });
+
+      // Timeout fallback after 8 seconds
+      setTimeout(() => {
+        if (document.getElementById('spinner').style.display !== 'none') {
+          showError();
+        }
+      }, 8000);
+    }
+  }
+
+  handleCallback();
+</script>
+</body>
+</html>
