@@ -345,7 +345,7 @@
   <div id="formPanel">
     <div class="login-eyebrow">Member Access</div>
     <h1 class="login-heading">LOG<br><span class="accent">IN.</span></h1>
-    <p class="login-sub">Enter your email and we'll send you a magic link — no password needed.</p>
+    <p class="login-sub">Enter your email and password to access your training.</p>
 
     <div class="form-group">
       <label class="form-label" for="emailInput">Email Address</label>
@@ -361,8 +361,24 @@
       <div class="form-error" id="emailError">Please enter a valid email address.</div>
     </div>
 
+    <div class="form-group">
+      <label class="form-label" for="passwordInput">Password</label>
+      <input
+        class="form-input"
+        type="password"
+        id="passwordInput"
+        placeholder="••••••••"
+        autocomplete="current-password"
+      />
+      <div class="form-error" id="passwordError">Please enter your password.</div>
+    </div>
+
+    <div style="text-align:right; margin-top:-6px; margin-bottom:18px;">
+      <a href="#" onclick="showForgotPassword()" style="font-size:12px;color:var(--muted2);text-decoration:none;">Forgot password?</a>
+    </div>
+
     <button class="btn-submit" id="submitBtn" onclick="handleLogin()">
-      <span class="btn-text">Send Magic Link →</span>
+      <span class="btn-text">Log In →</span>
       <span class="btn-spinner"><div class="spinner-ring"></div></span>
     </button>
 
@@ -376,6 +392,35 @@
       Don't have an account?
       <a href="https://trigonaut2.gumroad.com/l/mbyram" target="_blank">Start your free 7-day trial →</a>
     </p>
+  </div>
+
+  <!-- FORGOT PASSWORD VIEW -->
+  <div id="forgotPanel" style="display:none;">
+    <div class="login-eyebrow">Reset Password</div>
+    <h1 class="login-heading">FORGOT<br><span class="accent">PASSWORD?</span></h1>
+    <p class="login-sub">Enter your email and we'll send you a reset link.</p>
+
+    <div class="form-group">
+      <label class="form-label" for="resetEmailInput">Email Address</label>
+      <input
+        class="form-input"
+        type="email"
+        id="resetEmailInput"
+        placeholder="you@email.com"
+        autocomplete="email"
+        inputmode="email"
+      />
+      <div class="form-error" id="resetEmailError">Please enter a valid email address.</div>
+    </div>
+
+    <button class="btn-submit" id="resetBtn" onclick="handleReset()">
+      <span class="btn-text">Send Reset Link →</span>
+      <span class="btn-spinner"><div class="spinner-ring"></div></span>
+    </button>
+
+    <div style="text-align:center; margin-top:20px;">
+      <a href="#" onclick="showLogin()" style="font-size:13px;color:var(--muted2);text-decoration:none;">← Back to login</a>
+    </div>
   </div>
 
   <!-- SUCCESS VIEW -->
@@ -396,36 +441,29 @@
 <div class="footer-note">Purchased access? Use the same email you bought with.</div>
 
 <script>
-  // ─────────────────────────────────────────────
-  // CONFIG — replace these with your real values
-  // ─────────────────────────────────────────────
   const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU';
-  const APP_URL = 'https://builtbyjt.vercel.app/callback.html';
-  // ─────────────────────────────────────────────
+  const APP_URL = '/workout.html';
 
   const _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let lastEmail = '';
-  let resendTimer = null;
-
-  // ── On load: if user already has a session, redirect to app ──
+  // ── Check existing session on load ──
   (async function checkExistingSession() {
     const { data: { session } } = await _sb.auth.getSession();
-    if (session) {
-      redirectToApp(session);
-    }
+    if (session) redirectToApp(session);
   })();
 
-  // ── Handle auth state change (when user clicks magic link) ──
+  // ── Handle password reset redirect ──
   _sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      showResetPasswordForm();
+    }
     if (event === 'SIGNED_IN' && session) {
       redirectToApp(session);
     }
   });
 
   async function redirectToApp(session) {
-    // Check paid status before redirecting
     const { data: profile } = await _sb
       .from('profiles')
       .select('is_paid, subscription_status')
@@ -435,19 +473,16 @@
     if (profile?.is_paid && profile.subscription_status === 'active') {
       window.location.href = APP_URL;
     } else {
-      // Signed in but not paid — send to purchase
       showUnpaidMessage();
     }
   }
 
   function showUnpaidMessage() {
-    const formPanel = document.getElementById('formPanel');
-    formPanel.innerHTML = `
+    document.getElementById('formPanel').innerHTML = `
       <div class="login-eyebrow">Access Required</div>
       <h1 class="login-heading" style="font-size:52px;">NO<br><span class="accent">ACCESS.</span></h1>
       <p class="login-sub" style="margin-bottom:28px;">
-        Your account doesn't have an active subscription. 
-        Purchase access to unlock the full training system.
+        Your account doesn't have an active subscription.
       </p>
       <a href="https://trigonaut2.gumroad.com/l/mbyram" target="_blank" class="btn-submit" style="display:block;text-align:center;text-decoration:none;padding:16px 24px;border-radius:10px;font-weight:700;font-size:14px;font-family:'DM Sans',sans-serif;letter-spacing:0.5px;">
         Start Free — 7 Days →
@@ -455,96 +490,159 @@
     `;
   }
 
+  // ── EMAIL + PASSWORD LOGIN ──
   async function handleLogin() {
-    const input = document.getElementById('emailInput');
+    const email = document.getElementById('emailInput').value.trim().toLowerCase();
+    const password = document.getElementById('passwordInput').value;
     const btn = document.getElementById('submitBtn');
-    const errorEl = document.getElementById('emailError');
-    const email = input.value.trim().toLowerCase();
 
-    // Validate
+    // Validate email
     if (!email || !isValidEmail(email)) {
-      input.classList.add('error');
-      errorEl.classList.add('visible');
-      input.focus();
+      showFieldError('emailInput', 'emailError', 'Please enter a valid email address.');
       return;
     }
 
-    input.classList.remove('error');
-    errorEl.classList.remove('visible');
+    // Validate password
+    if (!password || password.length < 6) {
+      showFieldError('passwordInput', 'passwordError', 'Please enter your password.');
+      return;
+    }
 
-    // Loading state
+    clearErrors();
     btn.classList.add('loading');
     btn.disabled = true;
 
     try {
-      const { error } = await _sb.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: APP_URL,
+      const { data, error } = await _sb.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+
+        if (error.message.includes('Invalid login')) {
+          showFieldError('passwordInput', 'passwordError', 'Wrong email or password. Try again.');
+        } else if (error.message.includes('Email not confirmed')) {
+          showFieldError('emailInput', 'emailError', 'Please confirm your email first.');
+        } else {
+          showFieldError('emailInput', 'emailError', 'Something went wrong. Please try again.');
         }
+        return;
+      }
+
+      // Success — redirectToApp will fire via onAuthStateChange
+    } catch (err) {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      showFieldError('emailInput', 'emailError', 'Something went wrong. Please try again.');
+    }
+  }
+
+  // ── FORGOT PASSWORD ──
+  function showForgotPassword() {
+    document.getElementById('formPanel').style.display = 'none';
+    document.getElementById('forgotPanel').style.display = 'block';
+    document.getElementById('successPanel').classList.remove('visible');
+  }
+
+  function showLogin() {
+    document.getElementById('formPanel').style.display = 'block';
+    document.getElementById('forgotPanel').style.display = 'none';
+    document.getElementById('successPanel').classList.remove('visible');
+  }
+
+  async function handleReset() {
+    const email = document.getElementById('resetEmailInput').value.trim().toLowerCase();
+    const btn = document.getElementById('resetBtn');
+
+    if (!email || !isValidEmail(email)) {
+      showFieldError('resetEmailInput', 'resetEmailError', 'Please enter a valid email address.');
+      return;
+    }
+
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+      const { error } = await _sb.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://builtbyjt.vercel.app/reset.html'
       });
 
       if (error) throw error;
 
-      lastEmail = email;
-      showSuccess(email);
+      // Show success
+      document.getElementById('forgotPanel').style.display = 'none';
+      const panel = document.getElementById('successPanel');
+      document.getElementById('successEmail').textContent = email;
+      document.querySelector('.success-heading').textContent = 'CHECK YOUR EMAIL.';
+      document.querySelector('.success-sub').innerHTML = 'We sent a password reset link to<br><span class="success-email-highlight">' + email + '</span><br><br>Click it to set a new password.';
+      panel.classList.add('visible');
 
     } catch (err) {
       btn.classList.remove('loading');
       btn.disabled = false;
-
-      // Show friendly error
-      errorEl.textContent = err.message?.includes('rate limit')
-        ? 'Too many attempts. Please wait a minute and try again.'
-        : 'Something went wrong. Please try again.';
-      errorEl.classList.add('visible');
-      input.classList.add('error');
+      showFieldError('resetEmailInput', 'resetEmailError', 'Something went wrong. Please try again.');
     }
   }
 
-  function showSuccess(email) {
-    document.getElementById('formPanel').style.display = 'none';
-    const panel = document.getElementById('successPanel');
-    document.getElementById('successEmail').textContent = email;
-    panel.classList.add('visible');
-    startResendCooldown(60);
+  function showResetPasswordForm() {
+    document.getElementById('formPanel').innerHTML = `
+      <div class="login-eyebrow">Set New Password</div>
+      <h1 class="login-heading">NEW<br><span class="accent">PASSWORD.</span></h1>
+      <p class="login-sub">Choose a new password for your account.</p>
+      <div class="form-group">
+        <label class="form-label">New Password</label>
+        <input class="form-input" type="password" id="newPasswordInput" placeholder="••••••••" autocomplete="new-password" />
+        <div class="form-error" id="newPasswordError"></div>
+      </div>
+      <button class="btn-submit" id="savePasswordBtn" onclick="saveNewPassword()">
+        <span class="btn-text">Save Password →</span>
+        <span class="btn-spinner"><div class="spinner-ring"></div></span>
+      </button>
+    `;
   }
 
-  async function handleResend() {
-    if (!lastEmail) return;
-    const btn = document.getElementById('resendBtn');
+  async function saveNewPassword() {
+    const password = document.getElementById('newPasswordInput').value;
+    const btn = document.getElementById('savePasswordBtn');
+
+    if (!password || password.length < 6) {
+      showFieldError('newPasswordInput', 'newPasswordError', 'Password must be at least 6 characters.');
+      return;
+    }
+
+    btn.classList.add('loading');
     btn.disabled = true;
 
-    try {
-      await _sb.auth.signInWithOtp({
-        email: lastEmail,
-        options: { emailRedirectTo: APP_URL }
-      });
-      startResendCooldown(60);
-    } catch (err) {
+    const { error } = await _sb.auth.updateUser({ password });
+
+    if (error) {
+      btn.classList.remove('loading');
       btn.disabled = false;
+      showFieldError('newPasswordInput', 'newPasswordError', 'Could not update password. Try again.');
+      return;
     }
+
+    // Password updated — redirect to app
+    window.location.href = APP_URL;
   }
 
-  function startResendCooldown(seconds) {
-    const btn = document.getElementById('resendBtn');
-    const countdown = document.getElementById('resendCountdown');
-    btn.disabled = true;
-    let remaining = seconds;
+  // ── HELPERS ──
+  function showFieldError(inputId, errorId, msg) {
+    const input = document.getElementById(inputId);
+    const err = document.getElementById(errorId);
+    if (input) input.classList.add('error');
+    if (err) { err.textContent = msg; err.classList.add('visible'); }
+  }
 
-    countdown.textContent = `You can resend in ${remaining}s`;
-
-    clearInterval(resendTimer);
-    resendTimer = setInterval(() => {
-      remaining--;
-      if (remaining <= 0) {
-        clearInterval(resendTimer);
-        btn.disabled = false;
-        countdown.textContent = '';
-      } else {
-        countdown.textContent = `You can resend in ${remaining}s`;
-      }
-    }, 1000);
+  function clearErrors() {
+    ['emailInput','passwordInput'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('error');
+    });
+    ['emailError','passwordError'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('visible');
+    });
   }
 
   function isValidEmail(email) {
@@ -552,14 +650,24 @@
   }
 
   // ── Enter key submits ──
-  document.getElementById('emailInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') handleLogin();
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      if (document.getElementById('forgotPanel')?.style.display !== 'none') {
+        handleReset();
+      } else {
+        handleLogin();
+      }
+    }
   });
 
-  // ── Clear error on type ──
-  document.getElementById('emailInput').addEventListener('input', function() {
-    this.classList.remove('error');
-    document.getElementById('emailError').classList.remove('visible');
+  // ── Clear errors on type ──
+  ['emailInput','passwordInput'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', function() {
+      this.classList.remove('error');
+      const errEl = document.getElementById(id.replace('Input','Error'));
+      if (errEl) errEl.classList.remove('visible');
+    });
   });
 </script>
 </body>
