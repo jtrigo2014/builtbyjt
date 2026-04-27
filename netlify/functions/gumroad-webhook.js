@@ -1,0 +1,95 @@
+const { createClient } = require('@supabase/supabase-js');
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+exports.handler = async (event) => {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
+  }
+
+  try {
+    const params = new URLSearchParams(event.body);
+    const data = Object.fromEntries(params);
+
+    // Verify it's from your Gumroad account
+    if (data.seller_id !== process.env.GUMROAD_SELLER_ID) {
+      console.error('Invalid seller_id:', data.seller_id);
+      return { statusCode: 401, body: 'Unauthorized' };
+    }
+
+    const email = data.email?.toLowerCase().trim();
+    if (!email) {
+      return { statusCode: 400, body: 'No email in payload' };
+    }
+
+    const isRefunded = data.refunded === 'true';
+    const isCancelled = data.cancelled === 'true';
+
+    // Handle cancellations and refunds — revoke access
+    if (isRefunded || isCancelled) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          is_paid: false,
+          subscription_status: isCancelled ? 'cancelled' : 'refunded'
+        })
+        .eq('email', email);
+
+      if (error) console.error('Revoke access error:', error);
+      return { statusCode: 200, body: 'Access revoked' };
+    }
+
+    // Check if user already exists
+    const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
+    if (listError) throw listError;
+
+    const existingUser = existingUsers?.users?.find(u => u.email === email);
+    let userId;
+
+    if (existingUser) {
+      userId = existingUser.id;
+    } else {
+      // Create new user
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email,
+        email_confirm: true,
+      });
+      if (createError) throw createError;
+      userId = newUser.user.id;
+    }
+
+    // Grant access
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: userId,
+        email,
+        is_paid: true,
+        subscription_status: 'active',
+        gumroad_sale_id: data.sale_id || null,
+      });
+
+    if (updateError) throw updateError;
+
+    // Send magic link email
+    const { error: linkError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+      options: {
+        redirectTo: 'https://builtbyjt.netlify.app/workout.html'
+      }
+    });
+
+    if (linkError) console.error('Magic link error:', linkError);
+
+    console.log('Access granted to:', email);
+    return { statusCode: 200, body: 'OK' };
+
+  } catch (err) {
+    console.error('Webhook error:', err);
+    return { statusCode: 500, body: 'Internal error' };
+  }
+};
