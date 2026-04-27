@@ -1769,5 +1769,73 @@ window.addEventListener('resize', positionRibbon);
   </button>
 </div>
 </div>
+
+<!-- PWA Install Banner -->
+<div id="pwaPrompt" style="
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  left: 16px;
+  right: 16px;
+  background: #111;
+  border: 1px solid #e8ff47;
+  border-radius: 14px;
+  padding: 16px 18px;
+  z-index: 9999;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  animation: slideUp 0.4s ease forwards;
+">
+  <style>
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+    <div style="flex:1;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:#e8ff47;margin-bottom:6px;">ADD TO HOME SCREEN</div>
+      <div style="font-size:13px;color:#888;line-height:1.6;">
+        Get the full app experience. Tap 
+        <span style="display:inline-block;background:#222;border:1px solid #333;border-radius:4px;padding:1px 6px;font-size:12px;color:#ccc;">
+          Share ↑
+        </span> 
+        then <strong style="color:#ccc;">"Add to Home Screen"</strong>
+      </div>
+    </div>
+    <button onclick="dismissPWAPrompt()" style="
+      background: transparent;
+      border: none;
+      color: #444;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      flex-shrink: 0;
+    ">✕</button>
+  </div>
+</div>
+
+<script>
+  // Show PWA prompt only on iOS Safari, not already in standalone mode, not dismissed before
+  (function() {
+    const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const isStandalone = window.navigator.standalone === true;
+    const isDismissed = localStorage.getItem('pwaPromptDismissed');
+
+    if (isIOS && !isStandalone && !isDismissed) {
+      // Show after 3 seconds so it doesn't feel intrusive
+      setTimeout(() => {
+        document.getElementById('pwaPrompt').style.display = 'block';
+      }, 3000);
+    }
+  })();
+
+  function dismissPWAPrompt() {
+    document.getElementById('pwaPrompt').style.display = 'none';
+    localStorage.setItem('pwaPromptDismissed', 'true');
+  }
+</script>
+
+</div>
 </body>
 </html>
