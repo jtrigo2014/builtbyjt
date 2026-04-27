@@ -9,7 +9,18 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU"
     );
     const { data: { session } } = await _sb.auth.getSession();
-    if (!session) { window.location.href = "/login.html"; return; }
+    if (!session) {
+      const savedEmail = localStorage.getItem('bjt_email');
+      if (savedEmail) {
+        window.location.href = "/pin.html";
+      } else {
+        window.location.href = "/login.html";
+      }
+      return;
+    }
+    if (session?.user?.email) {
+      localStorage.setItem('bjt_email', session.user.email);
+    }
     const { data: profile } = await _sb
       .from("profiles")
       .select("is_paid, subscription_status")

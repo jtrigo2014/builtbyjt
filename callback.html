@@ -142,6 +142,8 @@
       }
 
       if (profile?.is_paid && profile.subscription_status === 'active') {
+        // Store email for PIN login
+        localStorage.setItem('bjt_email', session.user.email);
         setStatus('Welcome back!');
         setTimeout(() => {
           window.location.href = APP_URL;
