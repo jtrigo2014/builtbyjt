@@ -459,7 +459,8 @@ nav{
 const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU'
 const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-bootApp()
+
+// bootApp() is called at the bottom after all functions are defined
 
 // ─── PROFILE (loaded from Supabase) ───────────────────────────────────────────
 let profile = {
@@ -723,7 +724,7 @@ function goWorkout(dayName) {
 }
 
 // ─── BOOT ─────────────────────────────────────────────────────────────────────
-async function function bootApp() { loadAndInit() } {
+async function loadAndInit() {
   // Auth check
   const { data: { user } } = await _supabase.auth.getUser()
   if (!user) { window.location.href = 'index.html'; return; }
@@ -792,6 +793,9 @@ async function logOut() {
   await _supabase.auth.signOut()
   window.location.href = 'index.html'
 }
+
+// Start the app — called last so all functions are defined
+bootApp()
 </script>
 
   <!-- FOOTER -->
