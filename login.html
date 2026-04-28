@@ -184,13 +184,17 @@ body::before{
 <script>
 const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU'
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-let mode = 'login' // 'login' or 'signup'
+let _supabase
+let mode = 'login'
 
-// If already logged in, redirect
-_supabase.auth.getUser().then(({ data: { user } }) => {
-  if (user) redirectAfterLogin(user)
+document.addEventListener('DOMContentLoaded', () => {
+  _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+  // If already logged in, redirect
+  _supabase.auth.getUser().then(({ data: { user } }) => {
+    if (user) redirectAfterLogin(user)
+  })
 })
 
 function switchTab(newMode) {
@@ -215,7 +219,6 @@ function clearError() {
 }
 
 async function redirectAfterLogin(user) {
-  // Check if they've completed onboarding (have a profile)
   const { data: profile } = await _supabase
     .from('user_profiles')
     .select('id')
@@ -230,6 +233,7 @@ async function redirectAfterLogin(user) {
 }
 
 async function handleSubmit() {
+  if (!_supabase) { showError('App is still loading, please try again.'); return; }
   clearError()
   const email    = document.getElementById('email').value.trim()
   const password = document.getElementById('password').value
@@ -245,6 +249,17 @@ async function handleSubmit() {
     if (mode === 'signup') {
       const { data, error } = await _supabase.auth.signUp({ email, password })
       if (error) throw error
+      // With email confirmation on, data.user exists but session is null
+      // Show a message instead of redirecting
+      if (data.user && !data.session) {
+        btn.disabled = false
+        btn.textContent = 'CREATE ACCOUNT'
+        showError('Check your email and click the confirmation link to activate your account.')
+        document.getElementById('error-msg').style.color = '#e8ff47'
+        document.getElementById('error-msg').style.background = 'rgba(232,255,71,0.06)'
+        document.getElementById('error-msg').style.borderColor = 'rgba(232,255,71,0.2)'
+        return
+      }
       await redirectAfterLogin(data.user)
     } else {
       const { data, error } = await _supabase.auth.signInWithPassword({ email, password })
@@ -258,7 +273,6 @@ async function handleSubmit() {
   }
 }
 
-// Allow Enter key to submit
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter') handleSubmit()
 })

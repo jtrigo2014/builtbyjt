@@ -841,11 +841,10 @@
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU'
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-
-// Redirect to login if not authenticated
-_supabase.auth.getUser().then(({ data: { user } }) => {
-  if (!user) window.location.href = 'login.html'
+let _supabase
+document.addEventListener('DOMContentLoaded', () => {
+  _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+  bootApp()
 })
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -1126,7 +1125,7 @@ async function gotoDashboard() {
 
   try {
     const { data: { user } } = await _supabase.auth.getUser()
-    if (!user) { window.location.href = 'login.html'; return; }
+    if (!user) { window.location.href = 'index.html'; return; }
 
     // Save profile
     const { error: profileError } = await _supabase
@@ -1178,7 +1177,12 @@ async function gotoDashboard() {
 }
 
 // Init
-checkCurrent();
+function bootApp() {
+  _supabase.auth.getUser().then(({ data: { user } }) => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    checkCurrent()
+  })
+}
 </script>
 
   <!-- FOOTER -->

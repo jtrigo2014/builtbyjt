@@ -647,7 +647,11 @@ body::before{
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU'
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+let _supabase
+document.addEventListener('DOMContentLoaded', () => {
+  _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+  bootApp()
+})
 
 // Read day from URL: workout.html?day=Push
 const urlParams  = new URLSearchParams(window.location.search)
@@ -1095,10 +1099,12 @@ async function saveSession(durationSec, setsCount, totalVol) {
 }
 
 // ─── BOOT ─────────────────────────────────────────────────────────────────────
-_supabase.auth.getUser().then(({ data: { user } }) => {
-  if (!user) { window.location.href = 'login.html'; return; }
-  init();
-});
+function bootApp() {
+  _supabase.auth.getUser().then(({ data: { user } }) => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    init()
+  })
+}
 </script>
 
   <div style="text-align:center;padding:40px 0 8px;font-size:11px;color:#1e1e1e;letter-spacing:2px;font-family:'Bebas Neue',sans-serif;">
