@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Built by JT – Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:      #0a0a0a;
+  --surface: #111;
+  --border:  #1e1e1e;
+  --border2: #2a2a2a;
+  --accent:  #e8ff47;
+  --text:    #f0f0f0;
+  --muted:   #555;
+  --muted2:  #777;
+  --danger:  #ff5555;
+  --radius:  14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:24px 20px;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(232,255,71,0.05) 0%, transparent 60%);
+  pointer-events:none;z-index:0;
+}
+.card{
+  position:relative;z-index:1;
+  width:100%;max-width:400px;
+}
+
+/* Logo */
+.logo-wrap{text-align:center;margin-bottom:40px;}
+.logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:36px;letter-spacing:4px;
+  color:var(--accent);
+  line-height:1;
+}
+.logo-sub{
+  font-size:12px;color:var(--muted2);
+  letter-spacing:2px;text-transform:uppercase;
+  margin-top:6px;
+}
+
+/* Tabs */
+.tabs{
+  display:grid;grid-template-columns:1fr 1fr;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:4px;
+  margin-bottom:24px;
+}
+.tab{
+  padding:12px;
+  text-align:center;
+  font-size:14px;font-weight:500;
+  color:var(--muted2);
+  cursor:pointer;
+  border-radius:10px;
+  transition:all 0.2s;
+}
+.tab.active{
+  background:var(--accent);
+  color:#0a0a0a;
+  font-weight:700;
+}
+
+/* Form */
+.form{display:flex;flex-direction:column;gap:12px;}
+.input-group{display:flex;flex-direction:column;gap:6px;}
+.input-group label{
+  font-size:11px;text-transform:uppercase;
+  letter-spacing:1.5px;color:var(--muted2);font-weight:500;
+}
+.input-group input{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:10px;
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  padding:14px 16px;
+  outline:none;
+  transition:border-color 0.2s;
+  width:100%;
+}
+.input-group input:focus{border-color:var(--accent);}
+.input-group input::placeholder{color:var(--muted);}
+
+.btn-submit{
+  width:100%;
+  padding:16px;
+  background:var(--accent);
+  color:#0a0a0a;
+  border:none;
+  border-radius:var(--radius);
+  font-family:'Bebas Neue',sans-serif;
+  font-size:18px;letter-spacing:1px;
+  cursor:pointer;
+  margin-top:8px;
+  transition:background 0.15s, opacity 0.2s;
+}
+.btn-submit:hover{background:#f5ff6e;}
+.btn-submit:disabled{opacity:0.4;cursor:not-allowed;}
+
+.error-msg{
+  font-size:13px;color:var(--danger);
+  text-align:center;min-height:20px;
+  padding:8px;
+  background:rgba(255,85,85,0.08);
+  border-radius:8px;
+  border:1px solid rgba(255,85,85,0.2);
+  display:none;
+}
+.error-msg.show{display:block;}
+
+.divider{
+  text-align:center;
+  font-size:12px;color:var(--muted);
+  margin:4px 0;
+  letter-spacing:1px;
+}
+
+/* Footer */
+.footer{
+  margin-top:40px;
+  text-align:center;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:11px;color:#222;
+  letter-spacing:2px;
+}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="logo-wrap">
+    <div class="logo">BUILT BY JT</div>
+    <div class="logo-sub">Train smart. Progress always.</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-login" onclick="switchTab('login')">Log in</div>
+    <div class="tab" id="tab-signup" onclick="switchTab('signup')">Sign up</div>
+  </div>
+
+  <div class="form">
+    <div class="input-group">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="input-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="error-msg" id="error-msg"></div>
+    <button class="btn-submit" id="btn-submit" onclick="handleSubmit()">LOG IN</button>
+    <div class="divider" id="divider-text"></div>
+  </div>
+
+</div>
+
+<div class="footer">BUILT BY JT &nbsp;·&nbsp; TRAIN SMART. PROGRESS ALWAYS.</div>
+
+<script>
+const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU'
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+let mode = 'login' // 'login' or 'signup'
+
+// If already logged in, redirect
+supabase.auth.getUser().then(({ data: { user } }) => {
+  if (user) redirectAfterLogin(user)
+})
+
+function switchTab(newMode) {
+  mode = newMode
+  document.getElementById('tab-login').classList.toggle('active', mode === 'login')
+  document.getElementById('tab-signup').classList.toggle('active', mode === 'signup')
+  document.getElementById('btn-submit').textContent = mode === 'login' ? 'LOG IN' : 'CREATE ACCOUNT'
+  document.getElementById('password').autocomplete = mode === 'login' ? 'current-password' : 'new-password'
+  clearError()
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg')
+  el.textContent = msg
+  el.classList.add('show')
+}
+
+function clearError() {
+  const el = document.getElementById('error-msg')
+  el.textContent = ''
+  el.classList.remove('show')
+}
+
+async function redirectAfterLogin(user) {
+  // Check if they've completed onboarding (have a profile)
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (profile) {
+    window.location.href = 'dashboard.html'
+  } else {
+    window.location.href = 'onboarding.html'
+  }
+}
+
+async function handleSubmit() {
+  clearError()
+  const email    = document.getElementById('email').value.trim()
+  const password = document.getElementById('password').value
+  const btn      = document.getElementById('btn-submit')
+
+  if (!email || !password) { showError('Please enter your email and password.'); return; }
+  if (password.length < 6) { showError('Password must be at least 6 characters.'); return; }
+
+  btn.disabled = true
+  btn.textContent = mode === 'login' ? 'LOGGING IN...' : 'CREATING ACCOUNT...'
+
+  try {
+    if (mode === 'signup') {
+      const { data, error } = await supabase.auth.signUp({ email, password })
+      if (error) throw error
+      await redirectAfterLogin(data.user)
+    } else {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      await redirectAfterLogin(data.user)
+    }
+  } catch (err) {
+    showError(err.message || 'Something went wrong. Please try again.')
+    btn.disabled = false
+    btn.textContent = mode === 'login' ? 'LOG IN' : 'CREATE ACCOUNT'
+  }
+}
+
+// Allow Enter key to submit
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleSubmit()
+})
+</script>
+</body>
+</html>

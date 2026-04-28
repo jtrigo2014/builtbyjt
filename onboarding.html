@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Built by JT – Build Your Program</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ─── DESIGN TOKENS ──────────────────────────────────── */
+  :root {
+    --bg:        #0a0a0a;
+    --surface:   #111111;
+    --border:    #222222;
+    --accent:    #e8ff47;
+    --accent-dk: #b8cc1e;
+    --text:      #f0f0f0;
+    --muted:     #666666;
+    --danger:    #ff4d4d;
+    --radius:    14px;
+    --font-display: 'Bebas Neue', sans-serif;
+  --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ─── RESET ──────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* ─── BACKGROUND TEXTURE ─────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(232,255,71,0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(232,255,71,0.03) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── LAYOUT ─────────────────────────────────────────── */
+  .shell {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* ─── TOP BAR ────────────────────────────────────────── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 24px;
+    flex-shrink: 0;
+  }
+  .logo {
+    font-family: var(--font-head);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+  }
+  .step-counter {
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ─── PROGRESS BAR ───────────────────────────────────── */
+  .progress-wrap {
+    height: 3px;
+    background: var(--border);
+    border-radius: 99px;
+    margin-bottom: 52px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width var(--transition);
+  }
+
+  /* ─── SCREEN ─────────────────────────────────────────── */
+  .screens {
+    flex: 1;
+    position: relative;
+  }
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity var(--transition), transform var(--transition);
+    pointer-events: none;
+  }
+  .screen.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+    position: relative;
+  }
+  .screen.exit {
+    opacity: 0;
+    transform: translateX(-40px);
+    pointer-events: none;
+  }
+
+  /* ─── QUESTION ───────────────────────────────────────── */
+  .q-label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .q-title {
+    font-family: var(--font-head);
+    font-size: clamp(26px, 6vw, 34px);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .q-sub {
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 36px;
+    line-height: 1.5;
+  }
+
+  /* ─── OPTION CARDS ───────────────────────────────────── */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 36px;
+  }
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.1s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .opt:hover { border-color: #444; background: #161616; }
+  .opt:active { transform: scale(0.99); }
+  .opt.selected {
+    border-color: var(--accent);
+    background: rgba(232,255,71,0.06);
+  }
+  .opt-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .opt.selected .opt-icon { background: rgba(232,255,71,0.15); }
+  .opt-text { flex: 1; }
+  .opt-title {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .opt-desc { font-size: 13px; color: var(--muted); }
+  .opt-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .opt.selected .opt-check {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .opt.selected .opt-check::after {
+    content: '';
+    display: block;
+    width: 5px;
+    height: 9px;
+    border: 2px solid #0a0a0a;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translate(-1px, -1px);
+  }
+
+  /* ─── NUMBER INPUTS ──────────────────────────────────── */
+  .inputs-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+  .input-group { display: flex; flex-direction: column; gap: 8px; }
+  .input-group label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .input-group input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 22px;
+    font-weight: 500;
+    padding: 16px 18px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    -webkit-appearance: none;
+  }
+  .input-group input:focus { border-color: var(--accent); }
+  .input-group input::placeholder { color: var(--muted); font-size: 18px; }
+
+  /* ─── DAYS GRID ──────────────────────────────────────── */
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 36px;
+  }
+  .day-btn {
+    aspect-ratio: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: var(--font-head);
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .day-btn span { font-family: var(--font-body); font-size: 11px; color: var(--muted); font-weight: 400; }
+  .day-btn:hover { border-color: #444; background: #161616; }
+  .day-btn.selected {
+    border-color: var(--accent);
+    background: rgba(232,255,71,0.08);
+    color: var(--accent);
+  }
+  .day-btn.selected span { color: var(--accent-dk); }
+
+  /* ─── REVIEW CARD ────────────────────────────────────── */
+  .review-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 36px;
+  }
+  .review-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .review-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .review-row:first-child { padding-top: 0; }
+  .review-key { font-size: 13px; color: var(--muted); }
+  .review-val { font-size: 14px; font-weight: 500; color: var(--text); }
+  .review-val.accent { color: var(--accent); }
+
+  /* ─── BOTTOM BAR ─────────────────────────────────────── */
+  .bottom-bar {
+    padding: 24px 0 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .btn-next {
+    width: 100%;
+    padding: 18px;
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-head);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s, opacity 0.2s;
+  }
+  .btn-next:hover:not(:disabled) { background: #d6f545; }
+  .btn-next:active:not(:disabled) { transform: scale(0.99); }
+  .btn-next:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-back {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 15px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .btn-back:hover { color: var(--text); border-color: #444; }
+
+  /* ─── GENERATE SCREEN ────────────────────────────────── */
+  .generate-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 24px;
+    padding: 40px 0;
+  }
+  .gen-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .gen-title {
+    font-family: var(--font-head);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .gen-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 320px;
+  }
+  .gen-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--muted);
+    transition: color 0.3s;
+  }
+  .gen-step.done { color: var(--text); }
+  .gen-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .gen-step.done .gen-dot { background: var(--accent); }
+
+  /* ─── MACRO CARD ─────────────────────────────────────── */
+  .macro-card {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 16px;
+  }
+  .macro-card-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .macro-goal-note {
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+  .macro-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .macro-item {
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .macro-item.accent {
+    border-color: rgba(232,255,71,0.3);
+    background: rgba(232,255,71,0.05);
+  }
+  .macro-val {
+    font-family: var(--font-head);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .macro-item.accent .macro-val { color: var(--accent); }
+  .macro-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .macro-tdee {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+
+  /* ─── DONE SCREEN ────────────────────────────────────── */
+  .done-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 16px;
+    padding: 40px 0;
+  }
+  .done-badge {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: rgba(232,255,71,0.12);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+  }
+  .done-title {
+    font-family: var(--font-head);
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+  .done-sub { font-size: 15px; color: var(--muted); max-width: 300px; line-height: 1.6; }
+  .plan-preview {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    width: 100%;
+    text-align: left;
+    margin-top: 8px;
+  }
+  .plan-preview-title { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 14px; }
+  .week-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .day-pill {
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 500;
+    background: rgba(232,255,71,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(232,255,71,0.2);
+  }
+  .day-pill.rest {
+    background: var(--border);
+    color: var(--muted);
+    border-color: var(--border);
+  }
+
+  /* ─── VALIDATION MESSAGE ─────────────────────────────── */
+  .validation-msg {
+    font-size: 13px;
+    color: var(--danger);
+    text-align: center;
+    min-height: 20px;
+    transition: opacity 0.2s;
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="logo">BUILT BY JT</div>
+    <div class="step-counter" id="step-counter">Step 1 of 7</div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progress-fill" style="width: 14%"></div>
+  </div>
+
+  <!-- All screens -->
+  <div class="screens">
+
+    <!-- ── SCREEN 1: GOAL ─────────────────────────────── -->
+    <div class="screen active" id="screen-1">
+      <div class="q-label">Step 1</div>
+      <h1 class="q-title">What's your main goal?</h1>
+      <p class="q-sub">We'll build everything around this.</p>
+      <div class="options" id="opts-goal">
+        <div class="opt" data-key="goal" data-val="muscle_gain" onclick="select(this)">
+          <div class="opt-icon">💪</div>
+          <div class="opt-text">
+            <div class="opt-title">Build muscle</div>
+            <div class="opt-desc">Increase size and definition</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="goal" data-val="fat_loss" onclick="select(this)">
+          <div class="opt-icon">🔥</div>
+          <div class="opt-text">
+            <div class="opt-title">Lose fat</div>
+            <div class="opt-desc">Lean out while keeping muscle</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="goal" data-val="strength" onclick="select(this)">
+          <div class="opt-icon">🏋️</div>
+          <div class="opt-text">
+            <div class="opt-title">Get stronger</div>
+            <div class="opt-desc">Improve your lifts and power</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="goal" data-val="recomposition" onclick="select(this)">
+          <div class="opt-icon">⚖️</div>
+          <div class="opt-text">
+            <div class="opt-title">Body recomposition</div>
+            <div class="opt-desc">Build muscle and lose fat together</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 2: LEVEL ────────────────────────────── -->
+    <div class="screen" id="screen-2">
+      <div class="q-label">Step 2</div>
+      <h1 class="q-title">Your experience level?</h1>
+      <p class="q-sub">Be honest — your plan will be more effective.</p>
+      <div class="options" id="opts-level">
+        <div class="opt" data-key="level" data-val="beginner" onclick="select(this)">
+          <div class="opt-icon">🌱</div>
+          <div class="opt-text">
+            <div class="opt-title">Beginner</div>
+            <div class="opt-desc">Less than 1 year of consistent training</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="level" data-val="intermediate" onclick="select(this)">
+          <div class="opt-icon">⚡</div>
+          <div class="opt-text">
+            <div class="opt-title">Intermediate</div>
+            <div class="opt-desc">1–3 years of regular training</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="level" data-val="advanced" onclick="select(this)">
+          <div class="opt-icon">🔱</div>
+          <div class="opt-text">
+            <div class="opt-title">Advanced</div>
+            <div class="opt-desc">3+ years, training with a structured plan</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 3: DAYS PER WEEK ────────────────────── -->
+    <div class="screen" id="screen-3">
+      <div class="q-label">Step 3</div>
+      <h1 class="q-title">Days per week?</h1>
+      <p class="q-sub">How many days can you realistically commit to?</p>
+      <div class="days-grid" id="days-grid">
+        <button class="day-btn" data-val="2" onclick="selectDays(this)">2<span>days</span></button>
+        <button class="day-btn" data-val="3" onclick="selectDays(this)">3<span>days</span></button>
+        <button class="day-btn" data-val="4" onclick="selectDays(this)">4<span>days</span></button>
+        <button class="day-btn" data-val="5" onclick="selectDays(this)">5<span>days</span></button>
+        <button class="day-btn" data-val="6" onclick="selectDays(this)">6<span>days</span></button>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 4: EQUIPMENT ────────────────────────── -->
+    <div class="screen" id="screen-4">
+      <div class="q-label">Step 4</div>
+      <h1 class="q-title">What equipment do you have?</h1>
+      <p class="q-sub">Your exercises will match what's available.</p>
+      <div class="options" id="opts-equipment">
+        <div class="opt" data-key="equipment" data-val="gym" onclick="select(this)">
+          <div class="opt-icon">🏛️</div>
+          <div class="opt-text">
+            <div class="opt-title">Full gym</div>
+            <div class="opt-desc">Barbells, machines, cables, everything</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="equipment" data-val="dumbbells" onclick="select(this)">
+          <div class="opt-icon">🔵</div>
+          <div class="opt-text">
+            <div class="opt-title">Dumbbells only</div>
+            <div class="opt-desc">Home gym with a full dumbbell set</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="equipment" data-val="home" onclick="select(this)">
+          <div class="opt-icon">🏠</div>
+          <div class="opt-text">
+            <div class="opt-title">Bodyweight / minimal</div>
+            <div class="opt-desc">No equipment, or just a pull-up bar</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 5: BODY STATS ───────────────────────── -->
+    <div class="screen" id="screen-5">
+      <div class="q-label">Step 5</div>
+      <h1 class="q-title">Your body stats</h1>
+      <p class="q-sub">Used to calibrate starting weights and track progress.</p>
+      <div class="inputs-row">
+        <div class="input-group">
+          <label>Weight (lbs)</label>
+          <input type="number" id="input-weight" placeholder="165" min="66" max="660"
+            oninput="profile.weight = this.value; checkStats(); checkCurrent()">
+        </div>
+        <div class="input-group">
+          <label>Height (ft &amp; in)</label>
+          <input type="text" id="input-height" placeholder='5\'10"'
+            oninput="profile.height = this.value; checkStats(); checkCurrent()">
+        </div>
+      </div>
+      <div class="validation-msg" id="stats-msg"></div>
+    </div>
+
+    <!-- ── SCREEN 6: BODY TYPE (optional) ────────────── -->
+    <div class="screen" id="screen-6">
+      <div class="q-label">Step 6 – Optional</div>
+      <h1 class="q-title">Body type?</h1>
+      <p class="q-sub">Helps fine-tune volume and nutrition notes. Skip if unsure.</p>
+      <div class="options" id="opts-bodytype">
+        <div class="opt" data-key="bodyType" data-val="ectomorph" onclick="select(this)">
+          <div class="opt-icon">🪄</div>
+          <div class="opt-text">
+            <div class="opt-title">Ectomorph</div>
+            <div class="opt-desc">Naturally lean, hard to gain weight</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="bodyType" data-val="mesomorph" onclick="select(this)">
+          <div class="opt-icon">⚡</div>
+          <div class="opt-text">
+            <div class="opt-title">Mesomorph</div>
+            <div class="opt-desc">Athletic build, gains muscle easily</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="bodyType" data-val="endomorph" onclick="select(this)">
+          <div class="opt-icon">🌊</div>
+          <div class="opt-text">
+            <div class="opt-title">Endomorph</div>
+            <div class="opt-desc">Stockier build, gains fat more easily</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 7: ACTIVITY LEVEL ─────────────────────── -->
+    <div class="screen" id="screen-7">
+      <div class="q-label">Step 7</div>
+      <h1 class="q-title">Daily activity level?</h1>
+      <p class="q-sub">Outside of your workouts — your job, lifestyle, movement. Used to calculate your calories.</p>
+      <div class="options" id="opts-activity">
+        <div class="opt" data-key="activity" data-val="sedentary" onclick="select(this)">
+          <div class="opt-icon">🪑</div>
+          <div class="opt-text">
+            <div class="opt-title">Sedentary</div>
+            <div class="opt-desc">Desk job, mostly sitting all day</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="activity" data-val="lightly_active" onclick="select(this)">
+          <div class="opt-icon">🚶</div>
+          <div class="opt-text">
+            <div class="opt-title">Lightly active</div>
+            <div class="opt-desc">Some walking, light daily movement</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="activity" data-val="active" onclick="select(this)">
+          <div class="opt-icon">⚡</div>
+          <div class="opt-text">
+            <div class="opt-title">Active</div>
+            <div class="opt-desc">On your feet most of the day, physical job</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="activity" data-val="very_active" onclick="select(this)">
+          <div class="opt-icon">🏃</div>
+          <div class="opt-text">
+            <div class="opt-title">Very active</div>
+            <div class="opt-desc">Manual labor, athlete, extremely active lifestyle</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 8: REVIEW ───────────────────────────── -->
+    <div class="screen" id="screen-8">
+      <div class="q-label">Step 8</div>
+      <h1 class="q-title">Looks good?</h1>
+      <p class="q-sub">Review your answers before we generate your plan.</p>
+      <div class="review-card" id="review-card">
+        <div class="review-row"><span class="review-key">Goal</span><span class="review-val accent" id="rv-goal">–</span></div>
+        <div class="review-row"><span class="review-key">Level</span><span class="review-val" id="rv-level">–</span></div>
+        <div class="review-row"><span class="review-key">Days / week</span><span class="review-val" id="rv-days">–</span></div>
+        <div class="review-row"><span class="review-key">Equipment</span><span class="review-val" id="rv-equip">–</span></div>
+        <div class="review-row"><span class="review-key">Weight</span><span class="review-val" id="rv-weight">–</span></div>
+        <div class="review-row"><span class="review-key">Height</span><span class="review-val" id="rv-height">–</span></div>
+        <div class="review-row"><span class="review-key">Body type</span><span class="review-val" id="rv-bodytype">–</span></div>
+        <div class="review-row"><span class="review-key">Activity</span><span class="review-val" id="rv-activity">–</span></div>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 9: GENERATING ───────────────────────── -->
+    <div class="screen" id="screen-9">
+      <div class="generate-wrap" id="gen-wrap">
+        <div class="gen-ring"></div>
+        <div class="gen-title">Building your program…</div>
+        <div class="gen-steps">
+          <div class="gen-step" id="gs-1"><div class="gen-dot"></div>Analyzing your profile</div>
+          <div class="gen-step" id="gs-2"><div class="gen-dot"></div>Selecting your training split</div>
+          <div class="gen-step" id="gs-3"><div class="gen-dot"></div>Choosing exercises</div>
+          <div class="gen-step" id="gs-4"><div class="gen-dot"></div>Assigning sets, reps &amp; rest</div>
+          <div class="gen-step" id="gs-5"><div class="gen-dot"></div>Building progression plan</div>
+          <div class="gen-step" id="gs-6"><div class="gen-dot"></div>Calculating your macros</div>
+        </div>
+      </div>
+
+      <!-- Done state -->
+      <div class="done-wrap" id="done-wrap" style="display:none">
+        <div class="done-badge">✓</div>
+        <h2 class="done-title">Your program<br>is ready.</h2>
+        <p class="done-sub" id="done-sub">12-week progressive program built from proven training principles.</p>
+        <div class="plan-preview">
+          <div class="plan-preview-title">Your weekly split</div>
+          <div class="week-row" id="week-pills"></div>
+        </div>
+
+        <!-- MACRO CARD -->
+        <div class="macro-card">
+          <div class="macro-card-title">Daily nutrition targets</div>
+          <div class="macro-goal-note" id="macro-goal-note"></div>
+          <div class="macro-grid">
+            <div class="macro-item">
+              <div class="macro-val" id="macro-calories">–</div>
+              <div class="macro-label">Calories</div>
+            </div>
+            <div class="macro-item accent">
+              <div class="macro-val" id="macro-protein">–</div>
+              <div class="macro-label">Protein</div>
+            </div>
+            <div class="macro-item">
+              <div class="macro-val" id="macro-carbs">–</div>
+              <div class="macro-label">Carbs</div>
+            </div>
+            <div class="macro-item">
+              <div class="macro-val" id="macro-fat">–</div>
+              <div class="macro-label">Fat</div>
+            </div>
+          </div>
+          <div class="macro-tdee" id="macro-tdee"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- Bottom bar (nav buttons) -->
+  <div class="bottom-bar" id="bottom-bar">
+    <div class="validation-msg" id="main-msg"></div>
+    <button class="btn-next" id="btn-next" onclick="nextStep()" disabled>Continue</button>
+    <button class="btn-back" id="btn-back" onclick="prevStep()" style="display:none">← Back</button>
+  </div>
+</div>
+
+<script>
+// ─── SUPABASE ─────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU'
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+// Redirect to login if not authenticated
+supabase.auth.getUser().then(({ data: { user } }) => {
+  if (!user) window.location.href = 'login.html'
+})
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let currentStep = 1;
+const TOTAL_STEPS = 8; // steps 1-8, then screen 9 = generate, screen 10 = macros
+
+const profile = {
+  goal: null, level: null, daysPerWeek: null,
+  equipment: null, weight: null, height: null, bodyType: null,
+  activity: null,
+  macros: null, // calculated at the end
+};
+
+const labels = {
+  goal:      { muscle_gain:'Build muscle', fat_loss:'Lose fat', strength:'Get stronger', recomposition:'Body recomposition' },
+  level:     { beginner:'Beginner', intermediate:'Intermediate', advanced:'Advanced' },
+  equipment: { gym:'Full gym', dumbbells:'Dumbbells only', home:'Bodyweight / minimal' },
+  bodyType:  { ectomorph:'Ectomorph', mesomorph:'Mesomorph', endomorph:'Endomorph', null:'Not specified' },
+  activity:  { sedentary:'Sedentary', lightly_active:'Lightly active', active:'Active', very_active:'Very active' },
+};
+
+// ─── SELECTION HANDLERS ───────────────────────────────────────────────────────
+function select(el) {
+  const key = el.dataset.key;
+  const val = el.dataset.val;
+  // Deselect others in same group
+  document.querySelectorAll(`[data-key="${key}"]`).forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  profile[key] = val;
+  checkCurrent();
+}
+
+function selectDays(el) {
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  profile.daysPerWeek = parseInt(el.dataset.val);
+  checkCurrent();
+}
+
+// ─── VALIDATION ───────────────────────────────────────────────────────────────
+function checkCurrent() {
+  const btn = document.getElementById('btn-next');
+  const msg = document.getElementById('main-msg');
+  msg.textContent = '';
+  let valid = false;
+
+  if      (currentStep === 1) valid = !!profile.goal;
+  else if (currentStep === 2) valid = !!profile.level;
+  else if (currentStep === 3) valid = !!profile.daysPerWeek;
+  else if (currentStep === 4) valid = !!profile.equipment;
+  else if (currentStep === 5) valid = checkStats();
+  else if (currentStep === 6) valid = true; // body type optional
+  else if (currentStep === 7) valid = !!profile.activity;
+  else if (currentStep === 8) valid = true; // review
+
+  btn.disabled = !valid;
+  return valid;
+}
+
+function checkStats() {
+  const w = parseFloat(profile.weight);
+  const h = profile.height ? profile.height.trim() : '';
+  const msg = document.getElementById('stats-msg');
+  if (!w || !h) { msg.textContent = ''; return false; }
+  if (w < 66 || w > 660) { msg.textContent = 'Please enter a valid weight (66–660 lbs).'; return false; }
+  if (!/^\d+['′]\s*\d*["″]?$/.test(h) && !/^\d+\s*ft\s*\d*\s*in?$/i.test(h) && !/^\d+['′]$/.test(h)) {
+    msg.textContent = 'Enter height like 5\'10" or 5\'10'; return false;
+  }
+  msg.textContent = '';
+  return true;
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function nextStep() {
+  if (!checkCurrent()) return;
+  if (currentStep === 8) { startGeneration(); return; }
+
+  const current = document.getElementById(`screen-${currentStep}`);
+  current.classList.add('exit');
+  setTimeout(() => { current.classList.remove('active', 'exit'); }, 350);
+
+  currentStep++;
+  const next = document.getElementById(`screen-${currentStep}`);
+  next.classList.add('active');
+
+  updateUI();
+}
+
+function prevStep() {
+  if (currentStep <= 1) return;
+  const current = document.getElementById(`screen-${currentStep}`);
+  current.classList.remove('active');
+
+  currentStep--;
+  const prev = document.getElementById(`screen-${currentStep}`);
+  prev.classList.remove('exit');
+  prev.classList.add('active');
+
+  updateUI();
+}
+
+function updateUI() {
+  const pct = Math.round((currentStep / TOTAL_STEPS) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('step-counter').textContent =
+    currentStep <= TOTAL_STEPS ? `Step ${currentStep} of ${TOTAL_STEPS}` : 'Done!';
+
+  const btnNext = document.getElementById('btn-next');
+  const btnBack = document.getElementById('btn-back');
+  const bottomBar = document.getElementById('bottom-bar');
+
+  btnBack.style.display = currentStep > 1 ? 'block' : 'none';
+
+  if (currentStep === 8) {
+    btnNext.textContent = 'Generate my program →';
+    populateReview();
+  } else if (currentStep === 9) {
+    bottomBar.style.display = 'none';
+    return;
+  } else {
+    btnNext.textContent = 'Continue';
+  }
+
+  bottomBar.style.display = 'flex';
+  checkCurrent();
+}
+
+// ─── REVIEW POPULATION ────────────────────────────────────────────────────────
+function populateReview() {
+  document.getElementById('rv-goal').textContent    = labels.goal[profile.goal] || '–';
+  document.getElementById('rv-level').textContent   = labels.level[profile.level] || '–';
+  document.getElementById('rv-days').textContent    = profile.daysPerWeek ? `${profile.daysPerWeek} days` : '–';
+  document.getElementById('rv-equip').textContent   = labels.equipment[profile.equipment] || '–';
+  document.getElementById('rv-weight').textContent  = profile.weight ? `${profile.weight} lbs` : '–';
+  document.getElementById('rv-height').textContent  = profile.height ? profile.height : '–';
+  document.getElementById('rv-bodytype').textContent = labels.bodyType[profile.bodyType] || 'Not specified';
+  document.getElementById('rv-activity').textContent = labels.activity[profile.activity] || '–';
+}
+
+// ─── MACRO CALCULATOR (from Helms Nutrition Pyramid) ─────────────────────────
+// Formula: TDEE = bodyweight(lbs) × 10 × activity multiplier
+// Activity multipliers from book: sedentary 1.3–1.6, lightly 1.5–1.8, active 1.7–2.0, very 1.9–2.2
+// Protein: cutting 1.1–1.3g/lb, gaining 0.8–1.0g/lb
+// Fat: cutting 15–25% of cals, gaining 20–30% of cals
+// Carbs: remaining calories after protein + fat
+// Surplus: beginner +250, intermediate +175, advanced +100
+// Deficit: -400 to -500 cals for 0.5–1% bodyweight loss/week
+
+function calculateMacros() {
+  const weight = parseFloat(profile.weight);
+  const goal   = profile.goal;
+  const level  = profile.level;
+  const act    = profile.activity;
+
+  // Activity multiplier midpoints from Helms
+  const actMult = { sedentary: 1.45, lightly_active: 1.65, active: 1.85, very_active: 2.05 };
+  const mult = actMult[act] || 1.65;
+
+  // TDEE
+  const tdee = Math.round(weight * 10 * mult);
+
+  // Calorie target based on goal
+  let calories;
+  const surplusMap = { beginner: 250, intermediate: 175, advanced: 100 };
+  if (goal === 'muscle_gain') {
+    calories = tdee + (surplusMap[level] || 175);
+  } else if (goal === 'fat_loss') {
+    calories = tdee - 450; // ~1 lb/week loss, moderate deficit
+  } else if (goal === 'recomposition') {
+    calories = tdee; // maintenance
+  } else { // strength
+    calories = tdee + 150; // slight surplus to fuel performance
+  }
+
+  // Protein (g) — higher in cut to preserve muscle, moderate in surplus
+  const proteinPerLb = (goal === 'fat_loss') ? 1.2 : (goal === 'recomposition') ? 1.0 : 0.9;
+  const protein = Math.round(weight * proteinPerLb);
+  const proteinCals = protein * 4;
+
+  // Fat (% of calories) — 20% cut, 25% gain, 22% maint
+  const fatPct = (goal === 'fat_loss') ? 0.20 : (goal === 'muscle_gain') ? 0.25 : 0.22;
+  const fatCals = Math.round(calories * fatPct);
+  const fat = Math.round(fatCals / 9);
+
+  // Carbs — remainder
+  const carbCals = calories - proteinCals - fatCals;
+  const carbs = Math.round(Math.max(carbCals, 0) / 4);
+
+  // Recalc real calories
+  const realCals = (protein * 4) + (fat * 9) + (carbs * 4);
+
+  return { calories: realCals, protein, fat, carbs, tdee };
+}
+
+// ─── PLAN GENERATION ──────────────────────────────────────────────────────────
+function selectSplit(days, goal, level) {
+  if (days <= 2) return 'Full Body';
+  if (days === 3) return level === 'beginner' ? 'Full Body (3x)' : 'Push / Pull / Legs';
+  if (days === 4) return goal === 'strength' ? 'Upper / Lower (4x)' : 'Push / Pull / Legs + Upper';
+  return 'Push / Pull / Legs (5x)';
+}
+
+function buildWeekPills(days) {
+  const splits = {
+    2: ['Full Body','Rest','Full Body','Rest','Rest','Rest','Rest'],
+    3: ['Push','Rest','Pull','Rest','Legs','Rest','Rest'],
+    4: ['Push','Pull','Rest','Legs','Upper','Rest','Rest'],
+    5: ['Push','Pull','Legs','Rest','Push','Pull','Rest'],
+    6: ['Push','Pull','Legs','Push','Pull','Legs','Rest'],
+  };
+  return (splits[days] || splits[3]).map(d =>
+    `<div class="day-pill ${d==='Rest'?'rest':''}">${d}</div>`
+  ).join('');
+}
+
+function startGeneration() {
+  // Transition to screen 9
+  const prev = document.getElementById(`screen-${currentStep}`);
+  prev.classList.add('exit');
+  setTimeout(() => prev.classList.remove('active','exit'), 350);
+  currentStep = 9;
+  const genScreen = document.getElementById('screen-9');
+  genScreen.classList.add('active');
+  updateUI();
+
+  // Calculate macros now
+  profile.macros = calculateMacros();
+
+  // Animate generation steps
+  const steps = ['gs-1','gs-2','gs-3','gs-4','gs-5','gs-6'];
+  steps.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('done');
+    }, 500 + i * 600);
+  });
+
+  // Show result
+  setTimeout(() => {
+    document.getElementById('gen-wrap').style.display = 'none';
+    const doneWrap = document.getElementById('done-wrap');
+    doneWrap.style.display = 'flex';
+
+    const split = selectSplit(profile.daysPerWeek, profile.goal, profile.level);
+    document.getElementById('done-sub').textContent =
+      `${split} split — built around your ${labels.goal[profile.goal].toLowerCase()} goal.`;
+
+    document.getElementById('week-pills').innerHTML = buildWeekPills(profile.daysPerWeek);
+
+    // Populate macros
+    const m = profile.macros;
+    document.getElementById('macro-calories').textContent = m.calories;
+    document.getElementById('macro-protein').textContent  = m.protein + 'g';
+    document.getElementById('macro-carbs').textContent    = m.carbs + 'g';
+    document.getElementById('macro-fat').textContent      = m.fat + 'g';
+    document.getElementById('macro-tdee').textContent     = `Maintenance: ${m.tdee} kcal`;
+
+    const goalNote = {
+      muscle_gain:   `+${m.calories - m.tdee} cal surplus to support muscle growth`,
+      fat_loss:      `${m.calories - m.tdee} cal deficit · ~1 lb/week fat loss`,
+      recomposition: `Maintenance calories · body recomp approach`,
+      strength:      `+${m.calories - m.tdee} cal to fuel performance`,
+    };
+    document.getElementById('macro-goal-note').textContent = goalNote[profile.goal] || '';
+
+    // Show go to dashboard button
+    const bar = document.getElementById('bottom-bar');
+    bar.style.display = 'flex';
+    bar.innerHTML = `<button class="btn-next" onclick="gotoDashboard()">Go to my dashboard →</button>`;
+
+    document.getElementById('step-counter').textContent = 'Complete!';
+    document.getElementById('progress-fill').style.width = '100%';
+  }, 500 + steps.length * 600 + 400);
+}
+
+async function gotoDashboard() {
+  const btn = document.querySelector('#bottom-bar .btn-next')
+  if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { window.location.href = 'login.html'; return; }
+
+    // Save profile
+    const { error: profileError } = await supabase
+      .from('user_profiles')
+      .upsert({
+        user_id:       user.id,
+        goal:          profile.goal,
+        level:         profile.level,
+        days_per_week: profile.daysPerWeek,
+        equipment:     profile.equipment,
+        weight_lbs:    parseFloat(profile.weight),
+        height:        profile.height,
+        body_type:     profile.bodyType,
+        activity:      profile.activity,
+      }, { onConflict: 'user_id' })
+
+    if (profileError) throw profileError
+
+    // Build schedule JSON
+    const splitsMap = {
+      2: ['Full Body','Rest','Full Body','Rest','Rest','Rest','Rest'],
+      3: ['Push','Rest','Pull','Rest','Legs','Rest','Rest'],
+      4: ['Push','Pull','Rest','Legs','Upper','Rest','Rest'],
+      5: ['Push','Pull','Legs','Rest','Push','Pull','Rest'],
+      6: ['Push','Pull','Legs','Push','Pull','Legs','Rest'],
+    }
+    const scheduleArr = splitsMap[profile.daysPerWeek] || splitsMap[4]
+
+    // Save plan
+    const { error: planError } = await supabase
+      .from('workout_plans')
+      .insert({
+        user_id:    user.id,
+        split_key:  selectSplit(profile.daysPerWeek, profile.goal, profile.level),
+        schedule:   scheduleArr,
+        macros:     profile.macros,
+        week_number: 1,
+      })
+
+    if (planError) throw planError
+
+    window.location.href = 'dashboard.html'
+
+  } catch (err) {
+    console.error('Save error:', err)
+    if (btn) { btn.textContent = 'Go to my dashboard →'; btn.disabled = false; }
+    alert('Something went wrong saving your profile. Please try again.\n\n' + err.message)
+  }
+}
+
+// Init
+checkCurrent();
+</script>
+
+  <!-- FOOTER -->
+  <div style="text-align:center;padding:32px 0 8px;font-size:11px;color:#333;letter-spacing:2px;font-family:'Bebas Neue',sans-serif;">
+    BUILT BY JT &nbsp;·&nbsp; TRAIN SMART. PROGRESS ALWAYS.
+  </div>
+</body>
+</html>

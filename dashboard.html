@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Built by JT – Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────────── */
+:root {
+  --bg:        #0a0a0a;
+  --surface:   #111111;
+  --surface2:  #161616;
+  --border:    #1e1e1e;
+  --border2:   #2a2a2a;
+  --accent:    #e8ff47;
+  --accent-dk: #b8cc1e;
+  --accent-dim:rgba(232,255,71,0.08);
+  --text:      #f0f0f0;
+  --muted:     #555;
+  --muted2:    #777;
+  --radius:    14px;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+/* ─── RESET ──────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ─── AMBIENT GLOW ───────────────────────────────────── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 10% 0%, rgba(232,255,71,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 90% 100%, rgba(232,255,71,0.03) 0%, transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+/* ─── PAGE LAYOUT ────────────────────────────────────── */
+.page{
+  position:relative;z-index:1;
+  max-width:600px;
+  margin:0 auto;
+  padding:0 20px 60px;
+}
+
+/* ─── NAV ────────────────────────────────────────────── */
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:28px 0 32px;
+}
+.logo{
+  font-family:var(--font-display);
+  font-size:22px;font-weight:400;
+  letter-spacing:3px;
+  color:var(--accent);
+}
+.nav-right{display:flex;align-items:center;gap:16px;}
+.streak-badge{
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:99px;
+  padding:6px 14px;
+  font-size:13px;font-weight:500;
+  color:var(--text);
+}
+.streak-badge .fire{font-size:14px;}
+.avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--accent-dim);
+  border:1.5px solid rgba(232,255,71,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-head);font-size:13px;font-weight:700;
+  color:var(--accent);cursor:pointer;
+}
+
+/* ─── GREETING ───────────────────────────────────────── */
+.greeting{margin-bottom:32px;}
+.greeting-label{
+  font-size:13px;color:var(--muted2);
+  margin-bottom:6px;letter-spacing:0.2px;
+}
+.greeting-name{
+  font-family:var(--font-display);
+  font-size:clamp(28px,6vw,36px);
+  font-weight:800;letter-spacing:-1px;
+  line-height:1.1;
+}
+.greeting-name span{color:var(--accent);}
+
+/* ─── TODAY CARD ─────────────────────────────────────── */
+.today-card{
+  background:var(--accent);
+  border-radius:20px;
+  padding:28px 28px 24px;
+  margin-bottom:20px;
+  position:relative;
+  overflow:hidden;
+  cursor:pointer;
+  transition:transform 0.15s, filter 0.15s;
+}
+.today-card:hover{transform:translateY(-2px);filter:brightness(1.04);}
+.today-card:active{transform:scale(0.99);}
+.today-card::after{
+  content:'';
+  position:absolute;
+  top:-40px;right:-40px;
+  width:180px;height:180px;
+  border-radius:50%;
+  background:rgba(0,0,0,0.06);
+  pointer-events:none;
+}
+.today-eyebrow{
+  font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:2px;
+  color:rgba(0,0,0,0.45);
+  margin-bottom:10px;
+}
+.today-title{
+  font-family:var(--font-head);
+  font-size:clamp(22px,5vw,28px);
+  font-weight:800;
+  color:#0a0a0a;
+  letter-spacing:-0.5px;
+  margin-bottom:6px;
+}
+.today-meta{
+  font-size:14px;color:rgba(0,0,0,0.55);
+  margin-bottom:24px;
+}
+.today-exercises{
+  display:flex;flex-wrap:wrap;gap:6px;
+  margin-bottom:24px;
+}
+.ex-pill{
+  background:rgba(0,0,0,0.1);
+  border-radius:99px;
+  padding:5px 12px;
+  font-size:12px;font-weight:500;
+  color:rgba(0,0,0,0.65);
+}
+.today-cta{
+  display:inline-flex;align-items:center;gap:8px;
+  background:#0a0a0a;
+  color:var(--accent);
+  border:none;border-radius:12px;
+  padding:14px 24px;
+  font-family:var(--font-head);
+  font-size:15px;font-weight:700;
+  cursor:pointer;
+  transition:background 0.15s;
+  letter-spacing:0.2px;
+}
+.today-cta:hover{background:#1a1a1a;}
+.today-cta .arrow{
+  transition:transform 0.2s;
+}
+.today-card:hover .arrow{transform:translateX(3px);}
+
+/* ─── REST DAY CARD ──────────────────────────────────── */
+.rest-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:28px;
+  margin-bottom:20px;
+  text-align:center;
+}
+.rest-icon{font-size:36px;margin-bottom:12px;}
+.rest-title{
+  font-family:var(--font-head);
+  font-size:22px;font-weight:700;
+  margin-bottom:6px;
+}
+.rest-sub{font-size:14px;color:var(--muted2);line-height:1.6;}
+
+/* ─── STATS ROW ──────────────────────────────────────── */
+.stats-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-bottom:28px;
+}
+.stat-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  opacity:0;
+  transform:translateY(10px);
+  transition:opacity 0.4s, transform 0.4s;
+}
+.stat-card.visible{opacity:1;transform:translateY(0);}
+.stat-label{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
+.stat-value{font-family:var(--font-head);font-size:24px;font-weight:700;color:var(--text);line-height:1;}
+.stat-value.accent{color:var(--accent);}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* ─── WEEK SCHEDULE ──────────────────────────────────── */
+.section-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+}
+.section-title{
+  font-family:var(--font-head);
+  font-size:16px;font-weight:700;
+  letter-spacing:-0.3px;
+}
+.week-badge{
+  font-size:12px;color:var(--muted2);
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:99px;
+  padding:4px 12px;
+}
+.week-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+  margin-bottom:28px;
+}
+.week-day{
+  display:flex;flex-direction:column;align-items:center;
+  gap:6px;
+  padding:12px 4px;
+  border-radius:12px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  transition:border-color 0.2s;
+  cursor:default;
+}
+.week-day.done{
+  background:rgba(232,255,71,0.05);
+  border-color:rgba(232,255,71,0.2);
+}
+.week-day.today{
+  background:var(--accent-dim);
+  border-color:rgba(232,255,71,0.4);
+}
+.week-day.rest-day{opacity:0.4;}
+.wd-label{font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;font-weight:500;}
+.wd-name{font-size:10px;font-weight:600;color:var(--muted2);text-align:center;line-height:1.3;}
+.week-day.today .wd-label,
+.week-day.today .wd-name{color:var(--accent);}
+.week-day.done .wd-name{color:var(--muted2);}
+.wd-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--border2);
+}
+.week-day.done .wd-dot{background:var(--accent);}
+.week-day.today .wd-dot{background:var(--accent);box-shadow:0 0 6px rgba(232,255,71,0.5);}
+
+/* ─── WORKOUT LIST ───────────────────────────────────── */
+.section-title-lg{
+  font-family:var(--font-display);
+  font-size:22px;font-weight:400;letter-spacing:1px;
+  letter-spacing:-0.4px;
+  margin-bottom:14px;
+}
+.workout-list{display:flex;flex-direction:column;gap:10px;margin-bottom:28px;}
+.workout-item{
+  display:flex;align-items:center;gap:16px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px 18px;
+  cursor:pointer;
+  transition:border-color 0.2s, background 0.2s;
+  text-decoration:none;
+  color:inherit;
+}
+.workout-item:hover{border-color:var(--border2);background:var(--surface2);}
+.workout-item.completed{opacity:0.5;}
+.wi-icon{
+  width:42px;height:42px;border-radius:10px;
+  background:var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.workout-item.today-item .wi-icon{
+  background:var(--accent-dim);
+}
+.wi-body{flex:1;}
+.wi-title{font-size:15px;font-weight:500;margin-bottom:2px;}
+.wi-meta{font-size:12px;color:var(--muted2);}
+.wi-right{display:flex;align-items:center;gap:8px;}
+.wi-status{
+  font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:1px;
+  padding:4px 10px;border-radius:99px;
+}
+.wi-status.upcoming{
+  background:var(--accent-dim);
+  color:var(--accent);
+  border:1px solid rgba(232,255,71,0.2);
+}
+.wi-status.done-badge{
+  background:rgba(255,255,255,0.05);
+  color:var(--muted2);
+  border:1px solid var(--border);
+}
+.wi-status.rest-badge{
+  background:transparent;
+  color:var(--muted);
+  border:1px solid var(--border);
+}
+.wi-chevron{color:var(--muted);font-size:16px;}
+
+/* ─── PROGRESS SECTION ───────────────────────────────── */
+.progress-section{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:24px;
+  margin-bottom:28px;
+}
+.prog-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.prog-title{font-family:var(--font-head);font-size:16px;font-weight:700;}
+.prog-week{font-size:13px;color:var(--muted2);}
+.prog-bars{display:flex;flex-direction:column;gap:14px;}
+.prog-row{display:flex;flex-direction:column;gap:6px;}
+.prog-row-head{display:flex;justify-content:space-between;align-items:center;}
+.prog-name{font-size:13px;color:var(--muted2);}
+.prog-pct{font-size:13px;font-weight:500;color:var(--text);}
+.prog-track{
+  height:4px;background:var(--border2);
+  border-radius:99px;overflow:hidden;
+}
+.prog-fill{
+  height:100%;border-radius:99px;
+  background:var(--accent);
+  width:0%;
+  transition:width 1s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ─── PHASE BANNER ───────────────────────────────────── */
+.phase-banner{
+  border:1px solid var(--border2);
+  border-left:3px solid var(--accent);
+  border-radius:0 12px 12px 0;
+  background:var(--surface);
+  padding:16px 18px;
+  margin-bottom:28px;
+  display:flex;align-items:flex-start;gap:12px;
+}
+.phase-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+.phase-body{}
+.phase-title{font-size:14px;font-weight:500;margin-bottom:3px;}
+.phase-sub{font-size:13px;color:var(--muted2);line-height:1.5;}
+
+/* ─── ANIMATIONS ─────────────────────────────────────── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.fade-up{animation:fadeUp 0.5s ease both;}
+.fade-up:nth-child(1){animation-delay:0.05s;}
+.fade-up:nth-child(2){animation-delay:0.1s;}
+.fade-up:nth-child(3){animation-delay:0.15s;}
+.fade-up:nth-child(4){animation-delay:0.2s;}
+.fade-up:nth-child(5){animation-delay:0.25s;}
+.fade-up:nth-child(6){animation-delay:0.3s;}
+.fade-up:nth-child(7){animation-delay:0.35s;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- NAV -->
+  <nav class="fade-up">
+    <div class="logo">BUILT BY JT</div>
+    <div class="nav-right">
+      <div class="streak-badge"><span class="fire">🔥</span><span id="streak-count">5</span> day streak</div>
+      <div class="avatar" id="avatar-initials" onclick="logOut()" title="Log out">JD</div>
+    </div>
+  </nav>
+
+  <!-- GREETING -->
+  <div class="greeting fade-up">
+    <div class="greeting-label" id="greeting-label">Good morning</div>
+    <div class="greeting-name">Let's get to<br><span id="greeting-workout">work, Jake.</span></div>
+  </div>
+
+  <!-- TODAY CARD (or rest day) -->
+  <div id="today-slot" class="fade-up"></div>
+
+  <!-- STATS -->
+  <div class="stats-row fade-up">
+    <div class="stat-card" id="sc1">
+      <div class="stat-label">Week</div>
+      <div class="stat-value accent" id="stat-week">1</div>
+      <div class="stat-sub">of 12</div>
+    </div>
+    <div class="stat-card" id="sc2">
+      <div class="stat-label">Workouts done</div>
+      <div class="stat-value" id="stat-done">3</div>
+      <div class="stat-sub">this week</div>
+    </div>
+    <div class="stat-card" id="sc3">
+      <div class="stat-label">Next deload</div>
+      <div class="stat-value" id="stat-deload">2</div>
+      <div class="stat-sub">weeks away</div>
+    </div>
+  </div>
+
+  <!-- WEEK SCHEDULE -->
+  <div class="fade-up">
+    <div class="section-head">
+      <div class="section-title">This week</div>
+      <div class="week-badge" id="week-badge">Week 1 of 12</div>
+    </div>
+    <div class="week-grid" id="week-grid"></div>
+  </div>
+
+  <!-- PROGRESSION TIP -->
+  <div class="phase-banner fade-up" id="phase-banner">
+    <div class="phase-icon">📈</div>
+    <div class="phase-body">
+      <div class="phase-title" id="phase-title">Phase 1 — Foundation</div>
+      <div class="phase-sub" id="phase-sub">Focus on form and hitting the top of your rep range. Add weight only when you complete all sets with 2 reps in reserve.</div>
+    </div>
+  </div>
+
+  <!-- ALL WORKOUTS THIS WEEK -->
+  <div class="fade-up">
+    <div class="section-title-lg">Weekly plan</div>
+    <div class="workout-list" id="workout-list"></div>
+  </div>
+
+  <!-- VOLUME PROGRESS -->
+  <div class="progress-section fade-up">
+    <div class="prog-head">
+      <div class="prog-title">Weekly volume</div>
+      <div class="prog-week" id="vol-week-label">Week 1</div>
+    </div>
+    <div class="prog-bars" id="prog-bars"></div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ─── SUPABASE ─────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU'
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+// ─── PROFILE (loaded from Supabase) ───────────────────────────────────────────
+let profile = {
+  name:        'Athlete',
+  goal:        'muscle_gain',
+  level:       'intermediate',
+  daysPerWeek: 4,
+  equipment:   'gym',
+  weight:      185,
+  height:      "5'11\"",
+  currentWeek: 1,
+  totalWeeks:  12,
+  streak:      0,
+  completedToday: false,
+  macros:      null,
+};
+
+// ─── PLAN GENERATION LOGIC ────────────────────────────────────────────────────
+const EXERCISE_DB = {
+  Push:  { icon:'💪', main:['Bench Press','Overhead Press'],          acc:['Lateral Raise','Tricep Pushdown','Cable Fly'],       duration:'45–55 min' },
+  Pull:  { icon:'🔙', main:['Barbell Row','Pull-Up'],                  acc:['Face Pull','Bicep Curl','Cable Row'],                duration:'45–55 min' },
+  Legs:  { icon:'🦵', main:['Squat','Romanian Deadlift'],              acc:['Leg Press','Leg Curl','Calf Raise'],                 duration:'50–60 min' },
+  Upper: { icon:'🏋️', main:['Bench Press','Barbell Row','OHP'],        acc:['Lateral Raise','Bicep Curl','Tricep Pushdown'],      duration:'50–60 min' },
+  Lower: { icon:'⬇️', main:['Squat','RDL','Leg Press'],               acc:['Leg Curl','Calf Raise','Hip Thrust'],               duration:'50–60 min' },
+  'Full Body': { icon:'⚡', main:['Squat','Bench Press','Barbell Row'], acc:['OHP','RDL','Bicep Curl'],                          duration:'55–65 min' },
+};
+
+const VOLUME_PARAMS = {
+  muscle_gain:   { beginner:{sets:3,reps:'8–12',rest:'90s'}, intermediate:{sets:4,reps:'6–12',rest:'2 min'}, advanced:{sets:5,reps:'5–12',rest:'3 min'} },
+  fat_loss:      { beginner:{sets:3,reps:'12–15',rest:'60s'}, intermediate:{sets:4,reps:'10–15',rest:'60s'}, advanced:{sets:4,reps:'10–15',rest:'45s'} },
+  strength:      { beginner:{sets:3,reps:'4–6',rest:'3 min'}, intermediate:{sets:4,reps:'3–5',rest:'4 min'}, advanced:{sets:5,reps:'1–5',rest:'5 min'} },
+  recomposition: { beginner:{sets:3,reps:'8–15',rest:'90s'}, intermediate:{sets:4,reps:'6–12',rest:'90s'}, advanced:{sets:4,reps:'6–12',rest:'2 min'} },
+};
+
+function selectSplit(days, goal, level) {
+  if (days <= 2) return ['Full Body','Rest','Full Body','Rest','Rest','Rest','Rest'];
+  if (days === 3) return level === 'beginner'
+    ? ['Full Body','Rest','Full Body','Rest','Full Body','Rest','Rest']
+    : ['Push','Rest','Pull','Rest','Legs','Rest','Rest'];
+  if (days === 4) return goal === 'strength'
+    ? ['Upper','Lower','Rest','Upper','Lower','Rest','Rest']
+    : ['Push','Pull','Rest','Legs','Upper','Rest','Rest'];
+  if (days === 5) return ['Push','Pull','Legs','Rest','Push','Pull','Rest'];
+  return ['Push','Pull','Legs','Push','Pull','Legs','Rest'];
+}
+
+const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+// Simulate which days are done (first N-1 workout days this week are done)
+function getWeekStatus(schedule) {
+  let workoutCount = 0;
+  return schedule.map((day, i) => {
+    const isWorkout = day !== 'Rest';
+    let status = 'upcoming';
+    if (!isWorkout) { status = 'rest'; }
+    else {
+      workoutCount++;
+      if (workoutCount < 3) status = 'done';       // pretend first 2 workouts done
+      else if (workoutCount === 3) status = 'today'; // today is 3rd workout
+    }
+    return { day: DAY_LABELS[i], name: day, status };
+  });
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function init() {
+  const schedule = selectSplit(profile.daysPerWeek, profile.goal, profile.level);
+  const weekStatus = getWeekStatus(schedule);
+  const volume = VOLUME_PARAMS[profile.goal][profile.level];
+  const todaySlot = weekStatus.find(d => d.status === 'today');
+
+  // Greeting
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greeting-label').textContent = greet;
+  document.getElementById('greeting-workout').textContent =
+    todaySlot && todaySlot.name !== 'Rest'
+      ? `work, ${profile.name}.`
+      : `rest, ${profile.name}.`;
+
+  // Avatar
+  document.getElementById('avatar-initials').textContent =
+    profile.name.slice(0,2).toUpperCase();
+
+  // Streak
+  document.getElementById('streak-count').textContent = profile.streak;
+
+  // Stats
+  document.getElementById('stat-week').textContent = profile.currentWeek;
+  const doneCount = weekStatus.filter(d => d.status === 'done').length;
+  document.getElementById('stat-done').textContent = doneCount;
+  const deloadIn = profile.level === 'advanced' ? 3 : profile.level === 'intermediate' ? 4 : 5;
+  document.getElementById('stat-deload').textContent = deloadIn - ((profile.currentWeek - 1) % deloadIn);
+  document.getElementById('week-badge').textContent = `Week ${profile.currentWeek} of ${profile.totalWeeks}`;
+  document.getElementById('vol-week-label').textContent = `Week ${profile.currentWeek}`;
+
+  // Today card
+  renderTodayCard(todaySlot, volume);
+
+  // Week grid
+  renderWeekGrid(weekStatus);
+
+  // Workout list
+  renderWorkoutList(weekStatus, volume);
+
+  // Progress bars
+  renderProgressBars(weekStatus);
+
+  // Phase banner
+  renderPhaseBanner();
+
+  // Animate stats
+  setTimeout(() => {
+    document.querySelectorAll('.stat-card').forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), i * 80);
+    });
+  }, 300);
+
+  // Animate progress bars
+  setTimeout(() => {
+    document.querySelectorAll('.prog-fill').forEach(el => {
+      el.style.width = el.dataset.pct + '%';
+    });
+  }, 600);
+}
+
+function renderTodayCard(today, volume) {
+  const slot = document.getElementById('today-slot');
+  if (!today || today.name === 'Rest') {
+    slot.innerHTML = `
+      <div class="rest-card">
+        <div class="rest-icon">😴</div>
+        <div class="rest-title">Rest day</div>
+        <div class="rest-sub">Recovery is where growth happens.<br>Stay hydrated, sleep well.</div>
+      </div>`;
+    return;
+  }
+  const ex = EXERCISE_DB[today.name] || EXERCISE_DB['Push'];
+  const allEx = [...ex.main, ...ex.acc.slice(0,2)];
+  slot.innerHTML = `
+    <div class="today-card" onclick="goWorkout('${today.name}')">
+      <div class="today-eyebrow">Today's workout</div>
+      <div class="today-title">${today.name} Day</div>
+      <div class="today-meta">${ex.duration} &nbsp;·&nbsp; ${volume.sets} sets &nbsp;·&nbsp; ${volume.reps} reps &nbsp;·&nbsp; ${volume.rest} rest</div>
+      <div class="today-exercises">
+        ${allEx.map(e => `<div class="ex-pill">${e}</div>`).join('')}
+      </div>
+      <button class="today-cta">Start workout <span class="arrow">→</span></button>
+    </div>`;
+}
+
+function renderWeekGrid(weekStatus) {
+  const grid = document.getElementById('week-grid');
+  grid.innerHTML = weekStatus.map(d => `
+    <div class="week-day ${d.status === 'done' ? 'done' : ''} ${d.status === 'today' ? 'today' : ''} ${d.status === 'rest' ? 'rest-day' : ''}">
+      <div class="wd-label">${d.day}</div>
+      <div class="wd-name">${d.name === 'Rest' ? '–' : d.name.slice(0,4)}</div>
+      <div class="wd-dot"></div>
+    </div>
+  `).join('');
+}
+
+function renderWorkoutList(weekStatus, volume) {
+  const list = document.getElementById('workout-list');
+  const goalLabel = { muscle_gain:'Hypertrophy', fat_loss:'Fat loss', strength:'Strength', recomposition:'Recomp' };
+  list.innerHTML = weekStatus.map(d => {
+    if (d.name === 'Rest') {
+      return `
+        <div class="workout-item">
+          <div class="wi-icon">😴</div>
+          <div class="wi-body">
+            <div class="wi-title">Rest day</div>
+            <div class="wi-meta">${d.day} · Recovery</div>
+          </div>
+          <div class="wi-right"><span class="wi-status rest-badge">Rest</span></div>
+        </div>`;
+    }
+    const ex = EXERCISE_DB[d.name] || EXERCISE_DB['Push'];
+    const statusClass = d.status === 'done' ? 'done-badge' : 'upcoming';
+    const statusText  = d.status === 'done' ? '✓ Done' : d.status === 'today' ? 'Today' : 'Up next';
+    const todayClass  = d.status === 'today' ? 'today-item' : '';
+    const doneClass   = d.status === 'done'  ? 'completed'  : '';
+    return `
+      <div class="workout-item ${todayClass} ${doneClass}" onclick="goWorkout('${d.name}')">
+        <div class="wi-icon">${ex.icon}</div>
+        <div class="wi-body">
+          <div class="wi-title">${d.name} Day</div>
+          <div class="wi-meta">${d.day} · ${ex.duration} · ${goalLabel[profile.goal]}</div>
+        </div>
+        <div class="wi-right">
+          <span class="wi-status ${statusClass}">${statusText}</span>
+          <span class="wi-chevron">›</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderProgressBars(weekStatus) {
+  const muscles = {
+    'Push':  ['Chest','Shoulders','Triceps'],
+    'Pull':  ['Back','Biceps','Rear Delts'],
+    'Legs':  ['Quads','Hamstrings','Glutes'],
+    'Upper': ['Chest','Back','Shoulders'],
+    'Lower': ['Quads','Hamstrings','Glutes'],
+    'Full Body': ['Chest','Back','Legs'],
+  };
+  const doneDays = weekStatus.filter(d => d.status === 'done' && d.name !== 'Rest').map(d => d.name);
+  const totalWorkouts = weekStatus.filter(d => d.name !== 'Rest').length;
+  const doneCount = doneDays.length;
+
+  // Build muscle volume from done days
+  const muscleVol = {};
+  doneDays.forEach(day => {
+    (muscles[day] || []).forEach(m => { muscleVol[m] = (muscleVol[m] || 0) + 1; });
+  });
+
+  // Target = 2 sessions per muscle group per week for intermediate
+  const allMuscles = ['Chest','Back','Shoulders','Quads','Hamstrings','Triceps','Biceps'];
+  const target = 2;
+
+  const bars = document.getElementById('prog-bars');
+  bars.innerHTML = allMuscles.slice(0, 5).map(m => {
+    const vol = muscleVol[m] || 0;
+    const pct = Math.min(Math.round((vol / target) * 100), 100);
+    return `
+      <div class="prog-row">
+        <div class="prog-row-head">
+          <span class="prog-name">${m}</span>
+          <span class="prog-pct">${vol}/${target} sessions</span>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill" data-pct="${pct}" style="width:0%"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderPhaseBanner() {
+  const week = profile.currentWeek;
+  let title, sub;
+  if (week <= 3) {
+    title = 'Phase 1 — Foundation';
+    sub = 'Focus on form and hitting the top of your rep range. Add weight only when you complete all sets with 2 reps in reserve.';
+  } else if (week <= 6) {
+    title = 'Phase 2 — Accumulation';
+    sub = 'Volume increases this phase. Push closer to failure on your last set. Aim to add 2.5 lbs on upper body and 5 lbs on lower body lifts each week.';
+  } else if (week <= 9) {
+    title = 'Phase 3 — Intensification';
+    sub = 'Heavier weights, slightly lower reps. This is where real strength gains happen. Rest fully between sets.';
+  } else {
+    title = 'Phase 4 — Peak & Deload';
+    sub = 'Final push. Week 12 is a deload — reduce weight by 40% and focus on technique. You\'ve earned it.';
+  }
+  document.getElementById('phase-title').textContent = title;
+  document.getElementById('phase-sub').textContent = sub;
+}
+
+function goWorkout(dayName) {
+  if (dayName === 'Rest') return;
+  window.location.href = `workout.html?day=${encodeURIComponent(dayName)}`;
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+async function loadAndInit() {
+  // Auth check
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) { window.location.href = 'login.html'; return; }
+
+  try {
+    // Load profile
+    const { data: profileData } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profileData) { window.location.href = 'onboarding.html'; return; }
+
+    // Load plan
+    const { data: planData } = await supabase
+      .from('workout_plans')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    // Load completed sessions this week
+    const weekStart = new Date()
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+    weekStart.setHours(0,0,0,0)
+    const { data: sessions } = await supabase
+      .from('sessions')
+      .select('id, day_label, completed_at')
+      .eq('user_id', user.id)
+      .gte('completed_at', weekStart.toISOString())
+
+    // Extract first name from email
+    const firstName = user.email.split('@')[0].replace(/[^a-zA-Z]/g,'') || 'Athlete'
+    const capitalized = firstName.charAt(0).toUpperCase() + firstName.slice(1)
+
+    // Merge into profile
+    if (profileData) {
+      profile.name        = capitalized
+      profile.goal        = profileData.goal        || profile.goal
+      profile.level       = profileData.level       || profile.level
+      profile.daysPerWeek = profileData.days_per_week || profile.daysPerWeek
+      profile.equipment   = profileData.equipment   || profile.equipment
+      profile.weight      = profileData.weight_lbs  || profile.weight
+      profile.height      = profileData.height      || profile.height
+    }
+
+    if (planData) {
+      profile.currentWeek = planData.week_number || 1
+      profile.macros      = planData.macros
+    }
+
+    profile.streak = sessions ? sessions.length : 0
+
+  } catch (err) {
+    console.warn('Could not load full profile, using defaults:', err.message)
+  }
+
+  init()
+}
+
+loadAndInit()
+
+async function logOut() {
+  await supabase.auth.signOut()
+  window.location.href = 'login.html'
+}
+</script>
+
+  <!-- FOOTER -->
+  <div style="text-align:center;padding:40px 0 8px;font-size:11px;color:#2a2a2a;letter-spacing:2px;font-family:'Bebas Neue',sans-serif;">
+    BUILT BY JT &nbsp;·&nbsp; TRAIN SMART. PROGRESS ALWAYS.
+  </div>
+</body>
+</html>
