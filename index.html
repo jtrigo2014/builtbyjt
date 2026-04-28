@@ -6,7 +6,7 @@
 <title>Built by JT – Login</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@_supabase/_supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --bg:      #0a0a0a;
@@ -184,17 +184,13 @@ body::before{
 <script>
 const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU'
+const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-let _supabase
 let mode = 'login'
 
-document.addEventListener('DOMContentLoaded', () => {
-  _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-
-  // If already logged in, redirect
-  _supabase.auth.getUser().then(({ data: { user } }) => {
-    if (user) redirectAfterLogin(user)
-  })
+// If already logged in, redirect straight to app
+_supabase.auth.getUser().then(({ data: { user } }) => {
+  if (user) redirectAfterLogin(user)
 })
 
 function switchTab(newMode) {
@@ -233,7 +229,6 @@ async function redirectAfterLogin(user) {
 }
 
 async function handleSubmit() {
-  if (!_supabase) { showError('App is still loading, please try again.'); return; }
   clearError()
   const email    = document.getElementById('email').value.trim()
   const password = document.getElementById('password').value
