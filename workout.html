@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Built by JT – Workout</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@_supabase/_supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ─── TOKENS ──────────────────────────────────────────── */
@@ -647,7 +647,7 @@ body::before{
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU'
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
 // Read day from URL: workout.html?day=Push
 const urlParams  = new URLSearchParams(window.location.search)
@@ -1066,11 +1066,11 @@ function goToDashboard() {
 
 async function saveSession(durationSec, setsCount, totalVol) {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await _supabase.auth.getUser()
     if (!user) return;
 
     // Get the user's current plan id
-    const { data: plan } = await supabase
+    const { data: plan } = await _supabase
       .from('workout_plans')
       .select('id, week_number')
       .eq('user_id', user.id)
@@ -1078,7 +1078,7 @@ async function saveSession(durationSec, setsCount, totalVol) {
       .limit(1)
       .single()
 
-    await supabase.from('sessions').insert({
+    await _supabase.from('sessions').insert({
       user_id:      user.id,
       plan_id:      plan?.id || null,
       day_label:    WORKOUT.day,
@@ -1095,7 +1095,7 @@ async function saveSession(durationSec, setsCount, totalVol) {
 }
 
 // ─── BOOT ─────────────────────────────────────────────────────────────────────
-supabase.auth.getUser().then(({ data: { user } }) => {
+_supabase.auth.getUser().then(({ data: { user } }) => {
   if (!user) { window.location.href = 'login.html'; return; }
   init();
 });

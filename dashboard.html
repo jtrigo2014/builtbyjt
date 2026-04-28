@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Built by JT – Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@_supabase/_supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ─── TOKENS ─────────────────────────────────────────── */
@@ -458,7 +458,7 @@ nav{
 // ─── SUPABASE ─────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU'
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
 // ─── PROFILE (loaded from Supabase) ───────────────────────────────────────────
 let profile = {
@@ -724,12 +724,12 @@ function goWorkout(dayName) {
 // ─── BOOT ─────────────────────────────────────────────────────────────────────
 async function loadAndInit() {
   // Auth check
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user } } = await _supabase.auth.getUser()
   if (!user) { window.location.href = 'login.html'; return; }
 
   try {
     // Load profile
-    const { data: profileData } = await supabase
+    const { data: profileData } = await _supabase
       .from('user_profiles')
       .select('*')
       .eq('user_id', user.id)
@@ -738,7 +738,7 @@ async function loadAndInit() {
     if (!profileData) { window.location.href = 'onboarding.html'; return; }
 
     // Load plan
-    const { data: planData } = await supabase
+    const { data: planData } = await _supabase
       .from('workout_plans')
       .select('*')
       .eq('user_id', user.id)
@@ -750,7 +750,7 @@ async function loadAndInit() {
     const weekStart = new Date()
     weekStart.setDate(weekStart.getDate() - weekStart.getDay())
     weekStart.setHours(0,0,0,0)
-    const { data: sessions } = await supabase
+    const { data: sessions } = await _supabase
       .from('sessions')
       .select('id, day_label, completed_at')
       .eq('user_id', user.id)
@@ -788,7 +788,7 @@ async function loadAndInit() {
 loadAndInit()
 
 async function logOut() {
-  await supabase.auth.signOut()
+  await _supabase.auth.signOut()
   window.location.href = 'login.html'
 }
 </script>
