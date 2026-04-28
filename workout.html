@@ -5,9 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Built by JT – Workout</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-bootApp()
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ─── TOKENS ──────────────────────────────────────────── */
@@ -655,90 +653,151 @@ const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 const urlParams  = new URLSearchParams(window.location.search)
 const DAY_PARAM  = urlParams.get('day') || 'Push'
 
-// ─── WORKOUT DATA (loaded from Supabase plan) ─────────────────────────────────
-const WORKOUT = {
-  day:      DAY_PARAM,
-  week:     1,
-  goal:     'muscle_gain',
-  level:    'intermediate',
-  equipment:'gym',
+// ─── EXERCISE DATABASE ────────────────────────────────────────────────────────
+const EX_DB = {
+  Push: {
+    gym:       { main:[{name:'Barbell Bench Press',muscles:'Chest, Front Delt, Triceps',cue:'Drive feet into floor, slight arch, touch chest. Control descent 2 sec.'},{name:'Overhead Barbell Press',muscles:'Shoulders, Triceps',cue:'Brace core, press vertical, lock out at top.'}], acc:[{name:'Incline Dumbbell Press',muscles:'Upper Chest'},{name:'Cable Lateral Raise',muscles:'Side Delts'},{name:'Tricep Rope Pushdown',muscles:'Triceps'}] },
+    dumbbells: { main:[{name:'Dumbbell Bench Press',muscles:'Chest, Front Delt, Triceps',cue:'Control descent, full range of motion.'},{name:'Dumbbell Overhead Press',muscles:'Shoulders, Triceps',cue:'Keep ribs down, press straight up.'}], acc:[{name:'Incline DB Press',muscles:'Upper Chest'},{name:'DB Lateral Raise',muscles:'Side Delts'},{name:'DB Tricep Extension',muscles:'Triceps'}] },
+    home:      { main:[{name:'Push-Up',muscles:'Chest, Triceps, Shoulders',cue:'Keep body rigid, full range of motion.'},{name:'Pike Push-Up',muscles:'Shoulders, Triceps',cue:'Hips high, lower crown to floor.'}], acc:[{name:'Diamond Push-Up',muscles:'Triceps'},{name:'Wide Push-Up',muscles:'Chest'},{name:'Tricep Dip',muscles:'Triceps'}] },
+  },
+  Pull: {
+    gym:       { main:[{name:'Barbell Row',muscles:'Lats, Rhomboids, Biceps',cue:'Hinge at hip, pull to lower chest, control descent.'},{name:'Pull-Up',muscles:'Lats, Biceps, Rear Delt',cue:'Depress scapula first, pull elbows to hips.'}], acc:[{name:'Cable Row',muscles:'Mid Back'},{name:'Face Pull',muscles:'Rear Delt'},{name:'Barbell Curl',muscles:'Biceps'}] },
+    dumbbells: { main:[{name:'Dumbbell Row',muscles:'Lats, Rhomboids, Biceps',cue:'Chest supported, full stretch at bottom.'},{name:'Dumbbell Pullover',muscles:'Lats, Serratus',cue:'Slight bend in elbows, feel the stretch.'}], acc:[{name:'DB Rear Delt Fly',muscles:'Rear Delt'},{name:'DB Curl',muscles:'Biceps'},{name:'Hammer Curl',muscles:'Brachialis'}] },
+    home:      { main:[{name:'Pull-Up',muscles:'Lats, Biceps',cue:'Full hang at bottom, chin over bar at top.'},{name:'Inverted Row',muscles:'Upper Back, Biceps',cue:'Keep body rigid, pull chest to bar.'}], acc:[{name:'Band Pull-Apart',muscles:'Rear Delt'},{name:'Chin-Up',muscles:'Biceps'},{name:'Table Row',muscles:'Back'}] },
+  },
+  Legs: {
+    gym:       { main:[{name:'Barbell Squat',muscles:'Quads, Glutes, Hamstrings',cue:'Break at hips and knees together, knees track toes.'},{name:'Romanian Deadlift',muscles:'Hamstrings, Glutes',cue:'Hinge at hip, feel hamstring stretch, soft knee.'}], acc:[{name:'Leg Press',muscles:'Quads, Glutes'},{name:'Leg Curl',muscles:'Hamstrings'},{name:'Calf Raise',muscles:'Calves'}] },
+    dumbbells: { main:[{name:'Goblet Squat',muscles:'Quads, Glutes, Core',cue:'Hold DB at chest, squat deep, elbows inside knees.'},{name:'DB Romanian Deadlift',muscles:'Hamstrings, Glutes',cue:'Weights close to legs, hinge until stretch.'}], acc:[{name:'DB Lunge',muscles:'Quads, Glutes'},{name:'DB Hip Thrust',muscles:'Glutes'},{name:'DB Calf Raise',muscles:'Calves'}] },
+    home:      { main:[{name:'Bodyweight Squat',muscles:'Quads, Glutes',cue:'Control descent 3 sec, drive through heels.'},{name:'Single-Leg RDL',muscles:'Hamstrings, Glutes',cue:'Keep back flat, hinge until parallel.'}], acc:[{name:'Walking Lunge',muscles:'Quads, Glutes'},{name:'Glute Bridge',muscles:'Glutes'},{name:'Calf Raise',muscles:'Calves'}] },
+  },
+  Upper: {
+    gym:       { main:[{name:'Barbell Bench Press',muscles:'Chest, Front Delt, Triceps',cue:'Control descent, drive through chest.'},{name:'Barbell Row',muscles:'Lats, Rhomboids, Biceps',cue:'Hinge, pull to lower chest.'},{name:'Overhead Press',muscles:'Shoulders, Triceps',cue:'Press vertical, brace core.'}], acc:[{name:'Pull-Up',muscles:'Lats, Biceps'},{name:'Lateral Raise',muscles:'Side Delts'},{name:'Barbell Curl',muscles:'Biceps'}] },
+    dumbbells: { main:[{name:'DB Bench Press',muscles:'Chest, Front Delt, Triceps',cue:'Neutral grip, full range, control descent.'},{name:'DB Row',muscles:'Lats, Rhomboids, Biceps',cue:'Elbow to ceiling, full stretch at bottom.'},{name:'DB Overhead Press',muscles:'Shoulders, Triceps',cue:'Slight forward lean, control top and bottom.'}], acc:[{name:'Lateral Raise',muscles:'Side Delts'},{name:'DB Curl',muscles:'Biceps'},{name:'DB Tricep Ext',muscles:'Triceps'}] },
+    home:      { main:[{name:'Push-Up',muscles:'Chest, Triceps'},{name:'Inverted Row',muscles:'Back, Biceps'},{name:'Pike Push-Up',muscles:'Shoulders'}], acc:[{name:'Diamond Push-Up',muscles:'Triceps'},{name:'Pull-Up',muscles:'Lats'},{name:'Tricep Dip',muscles:'Triceps'}] },
+  },
+  Lower: {
+    gym:       { main:[{name:'Barbell Squat',muscles:'Quads, Glutes',cue:'Control descent, knees track toes.'},{name:'Deadlift',muscles:'Hamstrings, Glutes, Back',cue:'Push floor away, hips and shoulders rise together.'}], acc:[{name:'Leg Press',muscles:'Quads'},{name:'Leg Curl',muscles:'Hamstrings'},{name:'Hip Thrust',muscles:'Glutes'}] },
+    dumbbells: { main:[{name:'Goblet Squat',muscles:'Quads, Glutes'},{name:'DB RDL',muscles:'Hamstrings, Glutes'}], acc:[{name:'DB Lunge',muscles:'Quads'},{name:'Hip Thrust',muscles:'Glutes'},{name:'DB Calf Raise',muscles:'Calves'}] },
+    home:      { main:[{name:'Bodyweight Squat',muscles:'Quads, Glutes'},{name:'Single-Leg RDL',muscles:'Hamstrings, Glutes'}], acc:[{name:'Bulgarian Split Squat',muscles:'Quads'},{name:'Glute Bridge',muscles:'Glutes'},{name:'Calf Raise',muscles:'Calves'}] },
+  },
+  'Full Body': {
+    gym:       { main:[{name:'Barbell Squat',muscles:'Quads, Glutes',cue:'Focus on form.'},{name:'Barbell Bench Press',muscles:'Chest, Triceps'},{name:'Barbell Row',muscles:'Back, Biceps'}], acc:[{name:'Overhead Press',muscles:'Shoulders'},{name:'Romanian Deadlift',muscles:'Hamstrings'},{name:'Barbell Curl',muscles:'Biceps'}] },
+    dumbbells: { main:[{name:'Goblet Squat',muscles:'Quads, Glutes'},{name:'DB Bench Press',muscles:'Chest, Triceps'},{name:'DB Row',muscles:'Back, Biceps'}], acc:[{name:'DB OHP',muscles:'Shoulders'},{name:'DB RDL',muscles:'Hamstrings'},{name:'DB Curl',muscles:'Biceps'}] },
+    home:      { main:[{name:'Bodyweight Squat',muscles:'Quads, Glutes'},{name:'Push-Up',muscles:'Chest, Triceps'},{name:'Inverted Row',muscles:'Back, Biceps'}], acc:[{name:'Pike Push-Up',muscles:'Shoulders'},{name:'Hip Thrust',muscles:'Glutes'},{name:'Chin-Up',muscles:'Biceps'}] },
+  },
+}
 
-  warmUp: [
-    '5 min treadmill or jumping jacks',
-    'Arm circles × 20 each direction',
-    'Band pull-aparts × 15',
-    '2 sets bench press at 50% × 10 (warm-up sets)',
-  ],
+const WARMUPS = {
+  Push:        ['5 min treadmill or jumping jacks','Arm circles × 20 each direction','Band pull-aparts × 15','2 sets at 50% working weight × 10'],
+  Pull:        ['5 min light cardio','Dead hangs × 20 sec','Band rows × 15','2 sets at 50% working weight × 10'],
+  Legs:        ['5 min bike or brisk walk','Leg swings × 15 each leg','Bodyweight squat × 15','2 sets at 50% working weight × 8'],
+  Upper:       ['5 min light cardio','Arm circles + shoulder rolls','Band pull-aparts × 15','2 warm-up sets per main lift'],
+  Lower:       ['5 min bike or walk','Hip circles × 15 each direction','Glute bridges × 15','2 sets at 50% for squat or deadlift'],
+  'Full Body': ['5 min light cardio','Hip + shoulder circles × 15','Bodyweight squat × 10','2 warm-up sets per main exercise'],
+}
 
-  mainLifts: [
-    {
-      id: 'bench',
-      name: 'Barbell Bench Press',
-      muscles: 'Chest, Front Delt, Triceps',
-      sets: 4, reps: '6–12', rest: 120,
-      rir: 1,
-      cue: 'Drive feet into floor, slight arch, touch chest. Control descent for 2 seconds.',
-      prevSession: { weight: 155, reps: [10,10,9,8] },
-      progression: 'When you hit 12 reps on ALL sets, add 5 lbs next session.',
-    },
-    {
-      id: 'ohp',
-      name: 'Overhead Barbell Press',
-      muscles: 'Shoulders, Triceps, Traps',
-      sets: 4, reps: '6–12', rest: 120,
-      rir: 1,
-      cue: 'Brace core, press in a straight vertical line. Lock out fully at top.',
-      prevSession: { weight: 95, reps: [10,10,10,9] },
-      progression: 'When you hit 12 reps on ALL sets, add 5 lbs next session.',
-    },
-  ],
+const COOLDOWNS = {
+  Push: 'Chest, shoulders, and triceps. Hold each stretch 30–45 seconds.',
+  Pull: 'Lats, biceps, and rear delts. Hold each stretch 30–45 seconds.',
+  Legs: 'Quads, hamstrings, and glutes. Hold each stretch 30–45 seconds.',
+  Upper: 'Chest, back, and shoulders. Hold each stretch 30–45 seconds.',
+  Lower: 'Quads, hamstrings, and calves. Hold each stretch 30–45 seconds.',
+  'Full Body': 'Full body stretch — focus on hips, chest, and back.',
+}
 
-  accessories: [
-    {
-      id: 'incline',
-      name: 'Incline Dumbbell Press',
-      muscles: 'Upper Chest, Front Delt',
-      sets: 3, reps: '10–15', rest: 75,
-      rir: 1,
-      cue: 'Set at 30–45°. Elbows at 45° to body. Full range of motion.',
-      prevSession: { weight: 50, reps: [13,12,11] },
-      progression: 'When you hit 15 reps on ALL sets, go to next dumbbell.',
-    },
-    {
-      id: 'lateral',
-      name: 'Cable Lateral Raise',
-      muscles: 'Side Delts',
-      sets: 3, reps: '12–15', rest: 60,
-      rir: 1,
-      cue: 'Lead with elbow not hand. Stop at shoulder height. Slow and controlled.',
-      prevSession: { weight: 15, reps: [14,13,13] },
-      progression: 'When you hit 15 reps on ALL sets, add 5 lbs.',
-    },
-    {
-      id: 'tricep',
-      name: 'Tricep Rope Pushdown',
-      muscles: 'Triceps',
-      sets: 3, reps: '10–15', rest: 60,
-      rir: 1,
-      cue: 'Elbows tucked, spread rope at bottom, fully extend. Don\'t swing.',
-      prevSession: { weight: 40, reps: [14,13,12] },
-      progression: 'When you hit 15 reps on ALL sets, add 5 lbs.',
-    },
-  ],
+// ─── BUILD WORKOUT FROM PROFILE ───────────────────────────────────────────────
+function buildWorkout(day, userProfile) {
+  const { goal, level, equipment, week } = userProfile
+  const equip = equipment || 'gym'
+  const exGroup = EX_DB[day]?.[equip] || EX_DB[day]?.['gym'] || EX_DB['Push']['gym']
 
-  coolDown: 'Focus on chest, shoulders, and triceps. Hold each stretch 30–45 seconds. Slow your breathing.',
-  nextWorkout: 'Pull Day · Tomorrow',
-};
+  const volMap = {
+    muscle_gain:   { beginner:{sets:3,repsMin:8,repsMax:12,rest:90}, intermediate:{sets:4,repsMin:6,repsMax:12,rest:120}, advanced:{sets:5,repsMin:5,repsMax:12,rest:180} },
+    fat_loss:      { beginner:{sets:3,repsMin:10,repsMax:15,rest:60}, intermediate:{sets:4,repsMin:10,repsMax:15,rest:60}, advanced:{sets:4,repsMin:10,repsMax:15,rest:45} },
+    strength:      { beginner:{sets:3,repsMin:4,repsMax:6,rest:180}, intermediate:{sets:4,repsMin:3,repsMax:5,rest:240}, advanced:{sets:5,repsMin:1,repsMax:5,rest:300} },
+    recomposition: { beginner:{sets:3,repsMin:8,repsMax:15,rest:90}, intermediate:{sets:4,repsMin:6,repsMax:12,rest:90}, advanced:{sets:4,repsMin:6,repsMax:12,rest:120} },
+  }
+  const vol = volMap[goal]?.[level] || volMap['muscle_gain']['intermediate']
+  const isLower = ['Legs','Lower'].includes(day)
+  const addLbs  = isLower ? 10 : 5
+
+  const mainLifts = exGroup.main.map((ex, i) => ({
+    id: `main_${i}`,
+    name: ex.name,
+    muscles: ex.muscles,
+    sets: vol.sets,
+    reps: `${vol.repsMin}–${vol.repsMax}`,
+    rest: vol.rest,
+    rir: level === 'beginner' ? 2 : 1,
+    cue: ex.cue || 'Focus on form and controlled movement.',
+    prevSession: null,
+    progression: `When you hit ${vol.repsMax} reps on ALL sets, add ${addLbs} lbs next session.`,
+  }))
+
+  const accessories = exGroup.acc.slice(0,3).map((ex, i) => ({
+    id: `acc_${i}`,
+    name: ex.name,
+    muscles: ex.muscles,
+    sets: Math.max(vol.sets - 1, 3),
+    reps: `${vol.repsMin + 2}–${vol.repsMax + 2}`,
+    rest: Math.max(vol.rest - 30, 45),
+    rir: level === 'beginner' ? 2 : 1,
+    cue: ex.cue || 'Controlled movement, feel the muscle working.',
+    prevSession: null,
+    progression: `When you hit ${vol.repsMax + 2} reps on ALL sets, add 5 lbs.`,
+  }))
+
+  return {
+    day,
+    week: week || 1,
+    goal, level, equipment: equip,
+    warmUp: WARMUPS[day] || WARMUPS['Push'],
+    mainLifts,
+    accessories,
+    coolDown: COOLDOWNS[day] || COOLDOWNS['Push'],
+    nextWorkout: 'Check your dashboard for next workout',
+  }
+}
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const state = {
-  loggedSets: {},      // { exerciseId: [ { weight, reps, done: true } ] }
+  loggedSets: {},
   warmupDone: [],
   startTime:  Date.now(),
   timerInterval: null,
-  restInterval:  null,
   totalSets: 0,
-};
+}
+
+let WORKOUT = null
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+async function bootApp() {
+  const { data: { user } } = await _supabase.auth.getUser()
+  if (!user) { window.location.href = 'index.html'; return; }
+
+  // Load user profile + plan from Supabase
+  let userProfile = { goal:'muscle_gain', level:'intermediate', equipment:'gym', week:1 }
+
+  try {
+    const { data: profileData } = await _supabase
+      .from('user_profiles').select('*').eq('user_id', user.id).single()
+    const { data: planData } = await _supabase
+      .from('workout_plans').select('week_number').eq('user_id', user.id)
+      .order('created_at', { ascending: false }).limit(1).single()
+
+    if (profileData) {
+      userProfile.goal      = profileData.goal      || userProfile.goal
+      userProfile.level     = profileData.level     || userProfile.level
+      userProfile.equipment = profileData.equipment || userProfile.equipment
+    }
+    if (planData) userProfile.week = planData.week_number || 1
+  } catch(e) {
+    console.warn('Using default profile:', e.message)
+  }
+
+  WORKOUT = buildWorkout(DAY_PARAM, userProfile)
+  init()
+}
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function init() {
@@ -1096,13 +1155,8 @@ async function saveSession(durationSec, setsCount, totalVol) {
   }
 }
 
-// ─── BOOT ─────────────────────────────────────────────────────────────────────
-function bootApp() {
-  _supabase.auth.getUser().then(({ data: { user } }) => {
-    if (!user) { window.location.href = 'index.html'; return; }
-    init()
-  })
-}
+// Call bootApp defined above
+bootApp()
 </script>
 
   <div style="text-align:center;padding:40px 0 8px;font-size:11px;color:#1e1e1e;letter-spacing:2px;font-family:'Bebas Neue',sans-serif;">

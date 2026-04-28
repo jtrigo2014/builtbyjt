@@ -5,9 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Built by JT – Build Your Program</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-bootApp()
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   /* ─── DESIGN TOKENS ──────────────────────────────────── */
@@ -675,12 +673,22 @@ bootApp()
         <div class="input-group">
           <label>Weight (lbs)</label>
           <input type="number" id="input-weight" placeholder="165" min="66" max="660"
+            inputmode="decimal"
             oninput="profile.weight = this.value; checkStats(); checkCurrent()">
         </div>
         <div class="input-group">
-          <label>Height (ft &amp; in)</label>
-          <input type="text" id="input-height" placeholder='5\'10"'
-            oninput="profile.height = this.value; checkStats(); checkCurrent()">
+          <label>Height (ft)</label>
+          <input type="number" id="input-height-ft" placeholder="5" min="4" max="7"
+            inputmode="numeric"
+            oninput="updateHeight(); checkStats(); checkCurrent()">
+        </div>
+      </div>
+      <div class="inputs-row" style="margin-top:-4px;">
+        <div class="input-group" style="grid-column:2;">
+          <label>Inches</label>
+          <input type="number" id="input-height-in" placeholder="10" min="0" max="11"
+            inputmode="numeric"
+            oninput="updateHeight(); checkStats(); checkCurrent()">
         </div>
       </div>
       <div class="validation-msg" id="stats-msg"></div>
@@ -902,17 +910,25 @@ function checkCurrent() {
   return valid;
 }
 
-function checkStats() {
-  const w = parseFloat(profile.weight);
-  const h = profile.height ? profile.height.trim() : '';
-  const msg = document.getElementById('stats-msg');
-  if (!w || !h) { msg.textContent = ''; return false; }
-  if (w < 66 || w > 660) { msg.textContent = 'Please enter a valid weight (66–660 lbs).'; return false; }
-  if (!/^\d+['′]\s*\d*["″]?$/.test(h) && !/^\d+\s*ft\s*\d*\s*in?$/i.test(h) && !/^\d+['′]$/.test(h)) {
-    msg.textContent = 'Enter height like 5\'10" or 5\'10'; return false;
+function updateHeight() {
+  const ft = document.getElementById('input-height-ft').value
+  const inches = document.getElementById('input-height-in').value
+  if (ft) {
+    profile.height = inches ? `${ft}'${inches}"` : `${ft}'0"`
+  } else {
+    profile.height = null
   }
-  msg.textContent = '';
-  return true;
+}
+
+function checkStats() {
+  const w = parseFloat(profile.weight)
+  const ft = document.getElementById('input-height-ft')?.value
+  const msg = document.getElementById('stats-msg')
+  if (!w || !ft) { msg.textContent = ''; return false; }
+  if (w < 66 || w > 660) { msg.textContent = 'Please enter a valid weight (66–660 lbs).'; return false; }
+  if (parseInt(ft) < 4 || parseInt(ft) > 7) { msg.textContent = 'Please enter a valid height.'; return false; }
+  msg.textContent = ''
+  return true
 }
 
 // ─── NAVIGATION ───────────────────────────────────────────────────────────────
@@ -977,7 +993,7 @@ function populateReview() {
   document.getElementById('rv-days').textContent    = profile.daysPerWeek ? `${profile.daysPerWeek} days` : '–';
   document.getElementById('rv-equip').textContent   = labels.equipment[profile.equipment] || '–';
   document.getElementById('rv-weight').textContent  = profile.weight ? `${profile.weight} lbs` : '–';
-  document.getElementById('rv-height').textContent  = profile.height ? profile.height : '–';
+  document.getElementById('rv-height').textContent  = profile.height ? profile.height : '–'
   document.getElementById('rv-bodytype').textContent = labels.bodyType[profile.bodyType] || 'Not specified';
   document.getElementById('rv-activity').textContent = labels.activity[profile.activity] || '–';
 }

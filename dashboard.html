@@ -509,26 +509,27 @@ function selectSplit(days, goal, level) {
 
 const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-// Simulate which days are done (first N-1 workout days this week are done)
-function getWeekStatus(schedule) {
-  let workoutCount = 0;
+// Get today's day index: Mon=0, Tue=1 ... Sun=6
+function getTodayIndex() {
+  const jsDay = new Date().getDay(); // Sun=0, Mon=1...Sat=6
+  return jsDay === 0 ? 6 : jsDay - 1; // convert to Mon=0...Sun=6
+}
+
+function getWeekStatus(schedule, completedDayLabels) {
+  const todayIdx = getTodayIndex();
   return schedule.map((day, i) => {
-    const isWorkout = day !== 'Rest';
-    let status = 'upcoming';
-    if (!isWorkout) { status = 'rest'; }
-    else {
-      workoutCount++;
-      if (workoutCount < 3) status = 'done';       // pretend first 2 workouts done
-      else if (workoutCount === 3) status = 'today'; // today is 3rd workout
-    }
-    return { day: DAY_LABELS[i], name: day, status };
+    if (day === 'Rest') return { day: DAY_LABELS[i], name: day, status: 'rest' };
+    if (i < todayIdx && completedDayLabels.includes(day)) return { day: DAY_LABELS[i], name: day, status: 'done' };
+    if (i === todayIdx) return { day: DAY_LABELS[i], name: day, status: 'today' };
+    return { day: DAY_LABELS[i], name: day, status: 'upcoming' };
   });
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
 function init() {
   const schedule = selectSplit(profile.daysPerWeek, profile.goal, profile.level);
-  const weekStatus = getWeekStatus(schedule);
+  const completedLabels = (profile.completedDays || []);
+  const weekStatus = getWeekStatus(schedule, completedLabels);
   const volume = VOLUME_PARAMS[profile.goal][profile.level];
   const todaySlot = weekStatus.find(d => d.status === 'today');
 
@@ -778,7 +779,8 @@ async function loadAndInit() {
       profile.macros      = planData.macros
     }
 
-    profile.streak = sessions ? sessions.length : 0
+    profile.streak      = sessions ? sessions.length : 0
+    profile.completedDays = sessions ? sessions.map(s => s.day_label) : []
 
   } catch (err) {
     console.warn('Could not load full profile, using defaults:', err.message)
