@@ -721,14 +721,15 @@ function init() {
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   document.getElementById('greeting-label').textContent = greet;
+  const displayName = (profile.name && profile.name !== 'Athlete') ? profile.name + '.' : 'it.';
   document.getElementById('greeting-workout').textContent =
     todaySlot && todaySlot.name !== 'Rest'
-      ? `work, ${profile.name}.`
-      : `rest, ${profile.name}.`;
+      ? `work, ${displayName}`
+      : `rest, ${displayName}`;
 
   // Avatar
   document.getElementById('avatar-initials').textContent =
-    profile.name.slice(0,2).toUpperCase();
+    (profile.name && profile.name.length >= 2) ? profile.name.slice(0,2).toUpperCase() : 'ME';
 
   // Streak
   document.getElementById('streak-count').textContent = profile.streak;
@@ -784,17 +785,16 @@ function renderTodayCard(today, volume) {
     return;
   }
   const ex = EXERCISE_DB[today.name] || EXERCISE_DB['Push'];
-  const allEx = [...ex.main, ...ex.acc.slice(0,2)];
+  const y3tWeek = ((profile.currentWeek - 1) % 3) + 1;
+  const y3tLabels = { 1:'Heavy', 2:'Moderate', 3:'High Rep' };
+  const weekNote = profile.goal !== 'strength' ? ` · Y3T ${y3tLabels[y3tWeek]} Week` : '';
   slot.innerHTML = `
-    <div class="today-card" onclick="goWorkout('${today.name}')">
+    <div class="today-card">
       <div class="today-eyebrow">Today's workout</div>
       <div class="today-title">${today.name} Day</div>
-      <div class="today-meta">${ex.duration} &nbsp;·&nbsp; ${volume.sets} sets &nbsp;·&nbsp; ${volume.reps} reps &nbsp;·&nbsp; ${volume.rest} rest</div>
-      <div class="today-exercises">
-        ${allEx.map(e => `<div class="ex-pill">${e}</div>`).join('')}
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="today-cta">Start workout <span class="arrow">→</span></button>
+      <div class="today-meta">${ex.duration}${weekNote}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;">
+        <button class="today-cta" onclick="goWorkout('${today.name}')">Start workout <span class="arrow">→</span></button>
         <button class="today-cta-secondary" onclick="markTodayComplete(event, '${today.name}')">✓ Mark complete</button>
       </div>
     </div>`;
@@ -964,9 +964,11 @@ async function loadAndInit() {
       .eq('user_id', user.id)
       .gte('completed_at', weekStart.toISOString())
 
-    // Extract first name from email
-    const firstName = user.email.split('@')[0].replace(/[^a-zA-Z]/g,'') || 'Athlete'
-    const capitalized = firstName.charAt(0).toUpperCase() + firstName.slice(1)
+    // Get name from profile first_name field, fallback to email prefix
+    const firstName = profileData.first_name
+      || user.email.split('@')[0].replace(/[^a-zA-Z]/g,'')
+      || 'Athlete'
+    const capitalized = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase()
 
     // Merge into profile
     if (profileData) {

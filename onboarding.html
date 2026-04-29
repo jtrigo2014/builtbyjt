@@ -693,7 +693,14 @@
     <div class="screen" id="screen-6">
       <div class="q-label">Step 6</div>
       <h1 class="q-title">Your body stats</h1>
-      <p class="q-sub">Used to calibrate starting weights and track progress.</p>
+      <p class="q-sub">Used to calibrate your plan and personalize your experience.</p>
+      <div class="inputs-row" style="grid-template-columns:1fr;">
+        <div class="input-group">
+          <label>First name</label>
+          <input type="text" id="input-name" placeholder="Jake" autocomplete="given-name"
+            oninput="profile.firstName = this.value.trim(); checkCurrent()">
+        </div>
+      </div>
       <div class="inputs-row">
         <div class="input-group">
           <label>Weight (lbs)</label>
@@ -799,6 +806,7 @@
       <h1 class="q-title">Looks good?</h1>
       <p class="q-sub">Review your answers before we generate your plan.</p>
       <div class="review-card" id="review-card">
+        <div class="review-row"><span class="review-key">Name</span><span class="review-val" id="rv-name">–</span></div>
         <div class="review-row"><span class="review-key">Sex</span><span class="review-val" id="rv-gender">–</span></div>
         <div class="review-row"><span class="review-key">Goal</span><span class="review-val accent" id="rv-goal">–</span></div>
         <div class="review-row"><span class="review-key">Level</span><span class="review-val" id="rv-level">–</span></div>
@@ -874,17 +882,17 @@
 </div>
 
 <script>
-// ─── SUPABASE ─────────────────────────────────────────────────────────────────
+// ----------------------------------------
 const SUPABASE_URL = 'https://sedngqjfsswcgchcihiq.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZG5ncWpmc3N3Y2djaGNpaGlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMzE2OTksImV4cCI6MjA5MjcwNzY5OX0.5S9d9LAwvNxOxJO8nUTpxTVuNr7Z2r2IREEYS3LbOIU'
 const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-// ─── STATE ────────────────────────────────────────────────────────────────────
+// ----------------------------------------
 let currentStep = 1;
 const TOTAL_STEPS = 9; // steps 1-9 (gender added as step 1), screen 10 = generate
 
 const profile = {
-  gender: null, goal: null, level: null, daysPerWeek: null,
+  firstName: null, gender: null, goal: null, level: null, daysPerWeek: null,
   equipment: null, weight: null, height: null, bodyType: null,
   activity: null,
   macros: null,
@@ -899,7 +907,7 @@ const labels = {
   activity:  { sedentary:'Sedentary', lightly_active:'Lightly active', active:'Active', very_active:'Very active' },
 };
 
-// ─── SELECTION HANDLERS ───────────────────────────────────────────────────────
+// ----------------------------------------
 function select(el) {
   const key = el.dataset.key;
   const val = el.dataset.val;
@@ -917,7 +925,7 @@ function selectDays(el) {
   checkCurrent();
 }
 
-// ─── VALIDATION ───────────────────────────────────────────────────────────────
+// ----------------------------------------
 function checkCurrent() {
   const btn = document.getElementById('btn-next');
   const msg = document.getElementById('main-msg');
@@ -959,7 +967,7 @@ function checkStats() {
   return true
 }
 
-// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+// ----------------------------------------
 function nextStep() {
   if (!checkCurrent()) return;
   if (currentStep === 9) { startGeneration(); return; }
@@ -1014,8 +1022,9 @@ function updateUI() {
   checkCurrent();
 }
 
-// ─── REVIEW POPULATION ────────────────────────────────────────────────────────
+// ----------------------------------------
 function populateReview() {
+  document.getElementById('rv-name').textContent    = profile.firstName || '–';
   document.getElementById('rv-gender').textContent  = labels.gender[profile.gender] || '–';
   document.getElementById('rv-goal').textContent    = labels.goal[profile.goal] || '–';
   document.getElementById('rv-level').textContent   = labels.level[profile.level] || '–';
@@ -1027,7 +1036,7 @@ function populateReview() {
   document.getElementById('rv-activity').textContent = labels.activity[profile.activity] || '–';
 }
 
-// ─── MACRO CALCULATOR (from Helms Nutrition Pyramid) ─────────────────────────
+// ----------------------------------------
 // Formula: TDEE = bodyweight(lbs) × 10 × activity multiplier
 // Activity multipliers from book: sedentary 1.3–1.6, lightly 1.5–1.8, active 1.7–2.0, very 1.9–2.2
 // Protein: cutting 1.1–1.3g/lb, gaining 0.8–1.0g/lb
@@ -1044,7 +1053,7 @@ function calculateMacros() {
   const gender    = profile.gender || 'male';
 
   // Convert height from ft/in string to inches
-  const heightStr = profile.height || "5'10"";
+  const heightStr = profile.height || "5'10\"";
   const ftMatch   = heightStr.match(/(\d+)/g) || ['5','10'];
   const totalInches = (parseInt(ftMatch[0]) * 12) + (parseInt(ftMatch[1] || 0));
 
@@ -1108,7 +1117,7 @@ function calculateMacros() {
   return { calories: realCals, protein, fat, carbs, tdee };
 }
 
-// ─── PLAN GENERATION ──────────────────────────────────────────────────────────
+// ----------------------------------------
 function selectSplit(days, goal, level) {
   if (days <= 2) return 'Full Body';
   if (days === 3) return level === 'beginner' ? 'Full Body (3x)' : 'Push / Pull / Legs';
@@ -1201,6 +1210,7 @@ async function gotoDashboard() {
       .from('user_profiles')
       .upsert({
         user_id:       user.id,
+        first_name:    profile.firstName,
         gender:        profile.gender,
         goal:          profile.goal,
         level:         profile.level,
