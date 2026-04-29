@@ -700,23 +700,41 @@ function renderProgressBars(weekStatus) {
 }
 
 function renderPhaseBanner() {
-  const week = profile.currentWeek;
-  let title, sub;
+  const week = profile.currentWeek
+  const y3tWeek = ((week - 1) % 3) + 1
+  const y3tLabels = { 1:'Heavy Week', 2:'Moderate Week', 3:'High Rep Week' }
+  let title, sub
+
   if (week <= 3) {
-    title = 'Phase 1 — Foundation';
-    sub = 'Focus on form and hitting the top of your rep range. Add weight only when you complete all sets with 2 reps in reserve.';
+    title = `Phase 1 — Foundation · Y3T ${y3tLabels[y3tWeek]}`
+    sub = y3tWeek === 1
+      ? 'Heavy week. Focus on form and pushing compound lifts. 4–5 sec descent. Chase strength within your rep range.'
+      : y3tWeek === 2
+      ? 'Moderate rep week. 14–18 reps. Use less weight. Focus on feeling the muscle and the pump.'
+      : 'High rep week. 20–30 reps with drop sets and rest-pause. Push to failure. This week is brutal — that\'s the point.'
   } else if (week <= 6) {
-    title = 'Phase 2 — Accumulation';
-    sub = 'Volume increases this phase. Push closer to failure on your last set. Aim to add 2.5 lbs on upper body and 5 lbs on lower body lifts each week.';
+    title = `Phase 2 — Accumulation · Y3T ${y3tLabels[y3tWeek]}`
+    sub = y3tWeek === 1
+      ? 'Heavy week. Add weight if you beat rep targets last cycle. Keep eccentric slow — 4–5 sec.'
+      : y3tWeek === 2
+      ? 'Moderate week. Track reps. Beat last cycle\'s numbers.'
+      : 'High rep week. Drop sets on every exercise. Rest-pause to failure. Track total reps — beat it next cycle.'
   } else if (week <= 9) {
-    title = 'Phase 3 — Intensification';
-    sub = 'Heavier weights, slightly lower reps. This is where real strength gains happen. Rest fully between sets.';
+    title = `Phase 3 — Intensification · Y3T ${y3tLabels[y3tWeek]}`
+    sub = y3tWeek === 1
+      ? 'Heavy week. Peak intensity. Push your heaviest sets.'
+      : y3tWeek === 2
+      ? 'Moderate week. Higher volume than earlier phases. Feel every rep.'
+      : 'High rep week. Most intense week of the program. Everything goes.'
   } else {
-    title = 'Phase 4 — Peak & Deload';
-    sub = 'Final push. Week 12 is a deload — reduce weight by 40% and focus on technique. You\'ve earned it.';
+    title = `Phase 4 — Peak · Y3T ${y3tLabels[y3tWeek]}`
+    sub = week === 12
+      ? 'Week 12 — Deload. Reduce weights by 40%, cut sets by 1. Focus on movement quality. Your body is consolidating 12 weeks of gains.'
+      : 'Final phase. Leave everything in the gym.'
   }
-  document.getElementById('phase-title').textContent = title;
-  document.getElementById('phase-sub').textContent = sub;
+
+  document.getElementById('phase-title').textContent = title
+  document.getElementById('phase-sub').textContent   = sub
 }
 
 function goWorkout(dayName) {

@@ -633,6 +633,21 @@ body::before{
     </div>
   </div>
 
+  <!-- POST-WORKOUT CARDIO (fat loss + recomp only) -->
+  <div id="cardio-section" style="display:none;margin-top:28px;">
+    <div class="section-label">Post-workout cardio</div>
+    <div style="background:#0d1a00;border:1px solid rgba(232,255,71,0.2);border-left:3px solid #e8ff47;border-radius:0 12px 12px 0;padding:18px 20px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:#e8ff47;margin-bottom:8px;" id="cardio-type">Incline Treadmill Walk</div>
+      <div style="display:flex;gap:20px;margin-bottom:10px;">
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#555;margin-bottom:2px;">Duration</div>
+          <div style="font-family:'DM Mono',monospace;font-size:15px;color:#f0f0f0;" id="cardio-duration">20–25 min</div>
+        </div>
+      </div>
+      <div style="font-size:13px;color:#777;line-height:1.6;" id="cardio-intensity"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- FINISH BAR -->
@@ -653,56 +668,425 @@ const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 const urlParams  = new URLSearchParams(window.location.search)
 const DAY_PARAM  = urlParams.get('day') || 'Push'
 
-// ─── EXERCISE DATABASE ────────────────────────────────────────────────────────
+// ─── EXERCISE DATABASE (expanded — Y3T principles: variety of angles, 3D programming) ───
 const EX_DB = {
   Push: {
-    gym:       { main:[{name:'Barbell Bench Press',muscles:'Chest, Front Delt, Triceps',cue:'Drive feet into floor, slight arch, touch chest. Control descent 2 sec.'},{name:'Overhead Barbell Press',muscles:'Shoulders, Triceps',cue:'Brace core, press vertical, lock out at top.'}], acc:[{name:'Incline Dumbbell Press',muscles:'Upper Chest'},{name:'Cable Lateral Raise',muscles:'Side Delts'},{name:'Tricep Rope Pushdown',muscles:'Triceps'}] },
-    dumbbells: { main:[{name:'Dumbbell Bench Press',muscles:'Chest, Front Delt, Triceps',cue:'Control descent, full range of motion.'},{name:'Dumbbell Overhead Press',muscles:'Shoulders, Triceps',cue:'Keep ribs down, press straight up.'}], acc:[{name:'Incline DB Press',muscles:'Upper Chest'},{name:'DB Lateral Raise',muscles:'Side Delts'},{name:'DB Tricep Extension',muscles:'Triceps'}] },
-    home:      { main:[{name:'Push-Up',muscles:'Chest, Triceps, Shoulders',cue:'Keep body rigid, full range of motion.'},{name:'Pike Push-Up',muscles:'Shoulders, Triceps',cue:'Hips high, lower crown to floor.'}], acc:[{name:'Diamond Push-Up',muscles:'Triceps'},{name:'Wide Push-Up',muscles:'Chest'},{name:'Tricep Dip',muscles:'Triceps'}] },
+    gym: {
+      main: [
+        { name:'Barbell Bench Press',         muscles:'Chest, Front Delt, Triceps',      cue:'Drive feet into floor, slight arch, touch chest. 3–5 sec descent on W1, 2–3 sec on W2, explosive on W3.' },
+        { name:'Incline Dumbbell Press',       muscles:'Upper Chest, Front Delt',         cue:'30–45° incline. Elbows at 45°. Full stretch at bottom, squeeze at top.' },
+        { name:'Overhead Barbell Press',       muscles:'Shoulders, Triceps, Upper Traps', cue:'Brace core, press vertical. Lock out fully. Pause 1 sec at bottom of each rep.' },
+      ],
+      acc: [
+        { name:'Incline Dumbbell Fly',         muscles:'Upper Chest' },
+        { name:'Pec Deck / Cable Fly',         muscles:'Chest (inner, stretch focus)' },
+        { name:'Cable Lateral Raise',          muscles:'Side Delts' },
+        { name:'Seated DB Lateral Raise',      muscles:'Side Delts (partial — top half)' },
+        { name:'Tricep Rope Pushdown',         muscles:'Triceps' },
+        { name:'Weighted Dips',                muscles:'Triceps, Lower Chest' },
+        { name:'Overhead Tricep Extension',    muscles:'Triceps (long head)' },
+        { name:'Bent-Over Rear Delt Raise',    muscles:'Rear Delts' },
+      ],
+    },
+    dumbbells: {
+      main: [
+        { name:'Dumbbell Bench Press',         muscles:'Chest, Front Delt, Triceps',      cue:'Control descent fully. Neutral or pronated grip. Full range of motion.' },
+        { name:'Incline Dumbbell Press',       muscles:'Upper Chest, Front Delt',         cue:'30–45° angle. Keep elbows at 45° to torso, don\'t flare.' },
+        { name:'Dumbbell Overhead Press',      muscles:'Shoulders, Triceps',              cue:'Keep ribs down, slight forward lean. Pause at bottom.' },
+      ],
+      acc: [
+        { name:'Dumbbell Fly',                 muscles:'Chest' },
+        { name:'Incline Dumbbell Fly',         muscles:'Upper Chest' },
+        { name:'DB Lateral Raise',             muscles:'Side Delts' },
+        { name:'DB Front Raise',               muscles:'Front Delts' },
+        { name:'DB Tricep Kickback',           muscles:'Triceps' },
+        { name:'DB Overhead Tricep Extension', muscles:'Triceps (long head)' },
+        { name:'Bent-Over DB Rear Delt Fly',   muscles:'Rear Delts' },
+        { name:'DB Shrug',                     muscles:'Traps' },
+      ],
+    },
+    home: {
+      main: [
+        { name:'Push-Up',                      muscles:'Chest, Triceps, Shoulders',       cue:'Keep body rigid. Full range. Slow descent 3 sec, explosive push.' },
+        { name:'Pike Push-Up',                 muscles:'Shoulders, Triceps',              cue:'Hips high, lower crown toward floor. Feel shoulder stretch.' },
+        { name:'Decline Push-Up',              muscles:'Upper Chest, Shoulders',          cue:'Feet elevated, hands below chest. Control all the way down.' },
+      ],
+      acc: [
+        { name:'Diamond Push-Up',              muscles:'Triceps, Inner Chest' },
+        { name:'Wide Push-Up',                 muscles:'Outer Chest' },
+        { name:'Tricep Dip',                   muscles:'Triceps' },
+        { name:'Archer Push-Up',               muscles:'Chest (unilateral)' },
+        { name:'Wall Handstand Hold',          muscles:'Shoulders, Triceps' },
+        { name:'Close-Grip Push-Up',           muscles:'Triceps' },
+      ],
+    },
   },
+
   Pull: {
-    gym:       { main:[{name:'Barbell Row',muscles:'Lats, Rhomboids, Biceps',cue:'Hinge at hip, pull to lower chest, control descent.'},{name:'Pull-Up',muscles:'Lats, Biceps, Rear Delt',cue:'Depress scapula first, pull elbows to hips.'}], acc:[{name:'Cable Row',muscles:'Mid Back'},{name:'Face Pull',muscles:'Rear Delt'},{name:'Barbell Curl',muscles:'Biceps'}] },
-    dumbbells: { main:[{name:'Dumbbell Row',muscles:'Lats, Rhomboids, Biceps',cue:'Chest supported, full stretch at bottom.'},{name:'Dumbbell Pullover',muscles:'Lats, Serratus',cue:'Slight bend in elbows, feel the stretch.'}], acc:[{name:'DB Rear Delt Fly',muscles:'Rear Delt'},{name:'DB Curl',muscles:'Biceps'},{name:'Hammer Curl',muscles:'Brachialis'}] },
-    home:      { main:[{name:'Pull-Up',muscles:'Lats, Biceps',cue:'Full hang at bottom, chin over bar at top.'},{name:'Inverted Row',muscles:'Upper Back, Biceps',cue:'Keep body rigid, pull chest to bar.'}], acc:[{name:'Band Pull-Apart',muscles:'Rear Delt'},{name:'Chin-Up',muscles:'Biceps'},{name:'Table Row',muscles:'Back'}] },
+    gym: {
+      main: [
+        { name:'Barbell Row',                  muscles:'Lats, Rhomboids, Biceps, Rear Delt', cue:'Hinge at hip, pull bar to lower chest. 3–5 sec descent. Pause 1 sec at top, holding contraction.' },
+        { name:'Close-Grip Pull-Down',         muscles:'Lats, Biceps',                    cue:'Depress scapula first. Pull elbows to sides, not behind body. Full stretch at top.' },
+        { name:'Bent-Over Dumbbell Row',       muscles:'Lats, Rhomboids, Biceps',         cue:'Chest supported or braced. Full stretch at bottom. Elbow to ceiling.' },
+      ],
+      acc: [
+        { name:'Seated Cable Row (close grip)',muscles:'Mid Back, Rhomboids' },
+        { name:'Face Pull',                    muscles:'Rear Delt, Rotator Cuff' },
+        { name:'Straight-Arm Cable Pulldown',  muscles:'Lats' },
+        { name:'Barbell Curl',                 muscles:'Biceps' },
+        { name:'Incline Dumbbell Curl',        muscles:'Biceps (long head stretch)' },
+        { name:'Hammer Curl',                  muscles:'Brachialis, Biceps' },
+        { name:'EZ-Bar Preacher Curl',         muscles:'Biceps (peak)' },
+        { name:'Rack Pulls',                   muscles:'Upper Back, Traps, Spinal Erectors' },
+      ],
+    },
+    dumbbells: {
+      main: [
+        { name:'Single-Arm DB Row',            muscles:'Lats, Rhomboids, Biceps',         cue:'Knee on bench, chest flat. Pull elbow to ceiling. Full stretch at bottom.' },
+        { name:'DB Pullover',                  muscles:'Lats, Serratus, Long head Tricep', cue:'Slight elbow bend. Lower until arms parallel to floor. Feel full lat stretch.' },
+        { name:'Incline DB Hyper Row',         muscles:'Mid Back, Rhomboids, Rear Delt',  cue:'Face down on incline. Row DBs up keeping elbows wide.' },
+      ],
+      acc: [
+        { name:'DB Rear Delt Fly',             muscles:'Rear Delts, Rhomboids' },
+        { name:'DB Curl',                      muscles:'Biceps' },
+        { name:'Hammer Curl',                  muscles:'Brachialis' },
+        { name:'Incline DB Curl',              muscles:'Biceps (long head)' },
+        { name:'DB Shrug',                     muscles:'Traps' },
+        { name:'DB Upright Row',               muscles:'Side Delts, Traps' },
+      ],
+    },
+    home: {
+      main: [
+        { name:'Pull-Up',                      muscles:'Lats, Biceps, Rear Delt',         cue:'Full dead hang at bottom. Pull chest to bar, not chin. Control descent 3 sec.' },
+        { name:'Inverted Row',                 muscles:'Upper Back, Rhomboids, Biceps',   cue:'Body rigid like a plank. Pull chest to bar. Pause 1 sec at top.' },
+        { name:'Chin-Up',                      muscles:'Biceps, Lats',                    cue:'Supinated grip. Full range. Slow descent for maximum bicep tension.' },
+      ],
+      acc: [
+        { name:'Band Pull-Apart',              muscles:'Rear Delt, External Rotators' },
+        { name:'Band Face Pull',               muscles:'Rear Delt, Upper Traps' },
+        { name:'Towel Bicep Curl',             muscles:'Biceps' },
+        { name:'Table Row',                    muscles:'Back, Biceps' },
+        { name:'Dead Hang',                    muscles:'Lat activation, grip' },
+        { name:'Negative Pull-Up',             muscles:'Lats, Biceps' },
+      ],
+    },
   },
+
   Legs: {
-    gym:       { main:[{name:'Barbell Squat',muscles:'Quads, Glutes, Hamstrings',cue:'Break at hips and knees together, knees track toes.'},{name:'Romanian Deadlift',muscles:'Hamstrings, Glutes',cue:'Hinge at hip, feel hamstring stretch, soft knee.'}], acc:[{name:'Leg Press',muscles:'Quads, Glutes'},{name:'Leg Curl',muscles:'Hamstrings'},{name:'Calf Raise',muscles:'Calves'}] },
-    dumbbells: { main:[{name:'Goblet Squat',muscles:'Quads, Glutes, Core',cue:'Hold DB at chest, squat deep, elbows inside knees.'},{name:'DB Romanian Deadlift',muscles:'Hamstrings, Glutes',cue:'Weights close to legs, hinge until stretch.'}], acc:[{name:'DB Lunge',muscles:'Quads, Glutes'},{name:'DB Hip Thrust',muscles:'Glutes'},{name:'DB Calf Raise',muscles:'Calves'}] },
-    home:      { main:[{name:'Bodyweight Squat',muscles:'Quads, Glutes',cue:'Control descent 3 sec, drive through heels.'},{name:'Single-Leg RDL',muscles:'Hamstrings, Glutes',cue:'Keep back flat, hinge until parallel.'}], acc:[{name:'Walking Lunge',muscles:'Quads, Glutes'},{name:'Glute Bridge',muscles:'Glutes'},{name:'Calf Raise',muscles:'Calves'}] },
+    gym: {
+      main: [
+        { name:'Barbell Back Squat',           muscles:'Quads, Glutes, Hamstrings, Core', cue:'Break at hips AND knees simultaneously. Knees track toes. Drive through full foot. 3–5 sec descent.' },
+        { name:'Romanian Deadlift',            muscles:'Hamstrings, Glutes, Lower Back',  cue:'Hinge at hip. Soft knee. Feel hamstring stretch fully. Control descent — no rounding.' },
+        { name:'Hack Squat / Leg Press',       muscles:'Quads, Glutes',                   cue:'Vary foot position each week. Narrow = more quad. Wide/high = more glute/hamstring.' },
+      ],
+      acc: [
+        { name:'Leg Extension',                muscles:'Quads (VMO focus)' },
+        { name:'Lying Leg Curl',               muscles:'Hamstrings' },
+        { name:'Seated Leg Curl',              muscles:'Hamstrings (short head)' },
+        { name:'Hip Thrust',                   muscles:'Glutes' },
+        { name:'Bulgarian Split Squat',        muscles:'Quads, Glutes (unilateral)' },
+        { name:'Walking Lunge',                muscles:'Quads, Glutes, Hamstrings' },
+        { name:'Standing Calf Raise',          muscles:'Gastrocnemius' },
+        { name:'Seated Calf Raise',            muscles:'Soleus' },
+      ],
+    },
+    dumbbells: {
+      main: [
+        { name:'Goblet Squat',                 muscles:'Quads, Glutes, Core',             cue:'Hold DB at chest. Squat deep — elbows inside knees. Drive knees out on ascent.' },
+        { name:'DB Romanian Deadlift',         muscles:'Hamstrings, Glutes',              cue:'DBs stay close to legs throughout. Hinge until full hamstring stretch. Control back up.' },
+        { name:'DB Bulgarian Split Squat',     muscles:'Quads, Glutes (unilateral)',      cue:'Rear foot elevated. Front shin vertical. Deep range. Slow descent.' },
+      ],
+      acc: [
+        { name:'DB Lunge',                     muscles:'Quads, Glutes' },
+        { name:'DB Hip Thrust',                muscles:'Glutes' },
+        { name:'DB Step-Up',                   muscles:'Quads, Glutes' },
+        { name:'DB Stiff-Leg Deadlift',        muscles:'Hamstrings' },
+        { name:'Single-Leg DB Calf Raise',     muscles:'Calves' },
+        { name:'DB Sumo Squat',                muscles:'Inner Thighs, Glutes' },
+      ],
+    },
+    home: {
+      main: [
+        { name:'Bodyweight Squat',             muscles:'Quads, Glutes',                   cue:'3 sec descent. Drive through full foot. Add a pause at the bottom for more tension.' },
+        { name:'Single-Leg RDL',               muscles:'Hamstrings, Glutes, Balance',     cue:'Keep back flat. Hinge until body approaches parallel. Control throughout.' },
+        { name:'Bulgarian Split Squat',        muscles:'Quads, Glutes (unilateral)',      cue:'Rear foot on elevated surface. Deep range. Keep torso upright.' },
+      ],
+      acc: [
+        { name:'Walking Lunge',                muscles:'Quads, Glutes' },
+        { name:'Glute Bridge',                 muscles:'Glutes, Hamstrings' },
+        { name:'Hip Thrust (floor)',           muscles:'Glutes' },
+        { name:'Calf Raise',                   muscles:'Calves' },
+        { name:'Nordic Hamstring Curl',        muscles:'Hamstrings' },
+        { name:'Wall Sit',                     muscles:'Quads (isometric)' },
+      ],
+    },
   },
+
   Upper: {
-    gym:       { main:[{name:'Barbell Bench Press',muscles:'Chest, Front Delt, Triceps',cue:'Control descent, drive through chest.'},{name:'Barbell Row',muscles:'Lats, Rhomboids, Biceps',cue:'Hinge, pull to lower chest.'},{name:'Overhead Press',muscles:'Shoulders, Triceps',cue:'Press vertical, brace core.'}], acc:[{name:'Pull-Up',muscles:'Lats, Biceps'},{name:'Lateral Raise',muscles:'Side Delts'},{name:'Barbell Curl',muscles:'Biceps'}] },
-    dumbbells: { main:[{name:'DB Bench Press',muscles:'Chest, Front Delt, Triceps',cue:'Neutral grip, full range, control descent.'},{name:'DB Row',muscles:'Lats, Rhomboids, Biceps',cue:'Elbow to ceiling, full stretch at bottom.'},{name:'DB Overhead Press',muscles:'Shoulders, Triceps',cue:'Slight forward lean, control top and bottom.'}], acc:[{name:'Lateral Raise',muscles:'Side Delts'},{name:'DB Curl',muscles:'Biceps'},{name:'DB Tricep Ext',muscles:'Triceps'}] },
-    home:      { main:[{name:'Push-Up',muscles:'Chest, Triceps'},{name:'Inverted Row',muscles:'Back, Biceps'},{name:'Pike Push-Up',muscles:'Shoulders'}], acc:[{name:'Diamond Push-Up',muscles:'Triceps'},{name:'Pull-Up',muscles:'Lats'},{name:'Tricep Dip',muscles:'Triceps'}] },
+    gym: {
+      main: [
+        { name:'Barbell Bench Press',          muscles:'Chest, Front Delt, Triceps',      cue:'Control descent. Pause 1 sec at chest. Drive explosively.' },
+        { name:'Barbell Row',                  muscles:'Lats, Rhomboids, Biceps',         cue:'Hinge at hip. Pull to lower chest. 3 sec descent.' },
+        { name:'Seated DB Overhead Press',     muscles:'Shoulders, Triceps',              cue:'Slight forward lean. Full range — feel stretch at bottom.' },
+      ],
+      acc: [
+        { name:'Pull-Up',                      muscles:'Lats, Biceps' },
+        { name:'Incline Dumbbell Press',       muscles:'Upper Chest' },
+        { name:'Cable Lateral Raise',          muscles:'Side Delts' },
+        { name:'Face Pull',                    muscles:'Rear Delt' },
+        { name:'Barbell Curl',                 muscles:'Biceps' },
+        { name:'Tricep Pushdown',              muscles:'Triceps' },
+        { name:'Hammer Curl',                  muscles:'Brachialis' },
+        { name:'Pec Deck',                     muscles:'Inner Chest' },
+      ],
+    },
+    dumbbells: {
+      main: [
+        { name:'DB Bench Press',               muscles:'Chest, Front Delt, Triceps',      cue:'Neutral grip. Full range. Control descent 3 sec.' },
+        { name:'DB Row',                       muscles:'Lats, Rhomboids, Biceps',         cue:'Elbow to ceiling. Full stretch at bottom each rep.' },
+        { name:'DB Overhead Press',            muscles:'Shoulders, Triceps',              cue:'Pause 1 sec at shoulders before pressing. Full lockout.' },
+      ],
+      acc: [
+        { name:'Incline DB Press',             muscles:'Upper Chest' },
+        { name:'DB Lateral Raise',             muscles:'Side Delts' },
+        { name:'DB Rear Delt Fly',             muscles:'Rear Delt' },
+        { name:'DB Curl',                      muscles:'Biceps' },
+        { name:'Hammer Curl',                  muscles:'Brachialis' },
+        { name:'DB Tricep Extension',          muscles:'Triceps' },
+        { name:'DB Shrug',                     muscles:'Traps' },
+        { name:'DB Front Raise',               muscles:'Front Delt' },
+      ],
+    },
+    home: {
+      main: [
+        { name:'Push-Up',                      muscles:'Chest, Triceps, Shoulders',       cue:'3 sec descent. Explosive push. Full range.' },
+        { name:'Inverted Row',                 muscles:'Back, Biceps',                    cue:'Body rigid. Pause 1 sec at top. 3 sec descent.' },
+        { name:'Pike Push-Up',                 muscles:'Shoulders, Triceps',              cue:'Hips high. Lower crown to floor. Control.' },
+      ],
+      acc: [
+        { name:'Diamond Push-Up',              muscles:'Triceps' },
+        { name:'Pull-Up',                      muscles:'Lats, Biceps' },
+        { name:'Tricep Dip',                   muscles:'Triceps' },
+        { name:'Chin-Up',                      muscles:'Biceps' },
+        { name:'Wide Push-Up',                 muscles:'Chest' },
+        { name:'Band Pull-Apart',              muscles:'Rear Delt' },
+        { name:'Decline Push-Up',             muscles:'Upper Chest' },
+        { name:'Archer Push-Up',              muscles:'Chest (unilateral)' },
+      ],
+    },
   },
+
   Lower: {
-    gym:       { main:[{name:'Barbell Squat',muscles:'Quads, Glutes',cue:'Control descent, knees track toes.'},{name:'Deadlift',muscles:'Hamstrings, Glutes, Back',cue:'Push floor away, hips and shoulders rise together.'}], acc:[{name:'Leg Press',muscles:'Quads'},{name:'Leg Curl',muscles:'Hamstrings'},{name:'Hip Thrust',muscles:'Glutes'}] },
-    dumbbells: { main:[{name:'Goblet Squat',muscles:'Quads, Glutes'},{name:'DB RDL',muscles:'Hamstrings, Glutes'}], acc:[{name:'DB Lunge',muscles:'Quads'},{name:'Hip Thrust',muscles:'Glutes'},{name:'DB Calf Raise',muscles:'Calves'}] },
-    home:      { main:[{name:'Bodyweight Squat',muscles:'Quads, Glutes'},{name:'Single-Leg RDL',muscles:'Hamstrings, Glutes'}], acc:[{name:'Bulgarian Split Squat',muscles:'Quads'},{name:'Glute Bridge',muscles:'Glutes'},{name:'Calf Raise',muscles:'Calves'}] },
+    gym: {
+      main: [
+        { name:'Barbell Back Squat',           muscles:'Quads, Glutes, Core',             cue:'Alternate with RDL as primary lift. 3–5 sec descent W1.' },
+        { name:'Deadlift',                     muscles:'Hamstrings, Glutes, Back',        cue:'Push floor away. Hips and shoulders rise at same rate. Bar stays touching legs.' },
+        { name:'Leg Press',                    muscles:'Quads, Glutes',                   cue:'Vary stance each session. Full range — don\'t lock knees at top.' },
+      ],
+      acc: [
+        { name:'Leg Extension',                muscles:'Quads' },
+        { name:'Lying Leg Curl',               muscles:'Hamstrings' },
+        { name:'Hip Thrust',                   muscles:'Glutes' },
+        { name:'Walking Lunge',                muscles:'Quads, Glutes' },
+        { name:'Standing Calf Raise',          muscles:'Gastrocnemius' },
+        { name:'Seated Calf Raise',            muscles:'Soleus' },
+        { name:'Stiff-Leg Deadlift',           muscles:'Hamstrings, Lower Back' },
+        { name:'DB Bulgarian Split Squat',     muscles:'Quads, Glutes' },
+      ],
+    },
+    dumbbells: {
+      main: [
+        { name:'Goblet Squat',                 muscles:'Quads, Glutes' },
+        { name:'DB Romanian Deadlift',         muscles:'Hamstrings, Glutes' },
+        { name:'DB Bulgarian Split Squat',     muscles:'Quads, Glutes' },
+      ],
+      acc: [
+        { name:'DB Lunge',                     muscles:'Quads, Glutes' },
+        { name:'DB Hip Thrust',                muscles:'Glutes' },
+        { name:'DB Step-Up',                   muscles:'Quads, Glutes' },
+        { name:'Single-Leg RDL',               muscles:'Hamstrings' },
+        { name:'DB Calf Raise',                muscles:'Calves' },
+        { name:'DB Sumo Squat',                muscles:'Inner Thighs, Glutes' },
+      ],
+    },
+    home: {
+      main: [
+        { name:'Bodyweight Squat',             muscles:'Quads, Glutes' },
+        { name:'Single-Leg RDL',               muscles:'Hamstrings, Glutes' },
+        { name:'Bulgarian Split Squat',        muscles:'Quads, Glutes' },
+      ],
+      acc: [
+        { name:'Glute Bridge',                 muscles:'Glutes' },
+        { name:'Walking Lunge',                muscles:'Quads, Glutes' },
+        { name:'Nordic Hamstring Curl',        muscles:'Hamstrings' },
+        { name:'Calf Raise',                   muscles:'Calves' },
+        { name:'Wall Sit',                     muscles:'Quads' },
+        { name:'Hip Thrust (floor)',           muscles:'Glutes' },
+      ],
+    },
   },
+
   'Full Body': {
-    gym:       { main:[{name:'Barbell Squat',muscles:'Quads, Glutes',cue:'Focus on form.'},{name:'Barbell Bench Press',muscles:'Chest, Triceps'},{name:'Barbell Row',muscles:'Back, Biceps'}], acc:[{name:'Overhead Press',muscles:'Shoulders'},{name:'Romanian Deadlift',muscles:'Hamstrings'},{name:'Barbell Curl',muscles:'Biceps'}] },
-    dumbbells: { main:[{name:'Goblet Squat',muscles:'Quads, Glutes'},{name:'DB Bench Press',muscles:'Chest, Triceps'},{name:'DB Row',muscles:'Back, Biceps'}], acc:[{name:'DB OHP',muscles:'Shoulders'},{name:'DB RDL',muscles:'Hamstrings'},{name:'DB Curl',muscles:'Biceps'}] },
-    home:      { main:[{name:'Bodyweight Squat',muscles:'Quads, Glutes'},{name:'Push-Up',muscles:'Chest, Triceps'},{name:'Inverted Row',muscles:'Back, Biceps'}], acc:[{name:'Pike Push-Up',muscles:'Shoulders'},{name:'Hip Thrust',muscles:'Glutes'},{name:'Chin-Up',muscles:'Biceps'}] },
+    gym: {
+      main: [
+        { name:'Barbell Back Squat',           muscles:'Quads, Glutes, Core',             cue:'Primary lower body movement. Focus on depth and tempo.' },
+        { name:'Barbell Bench Press',          muscles:'Chest, Triceps, Front Delt',      cue:'Primary upper push. Pause at chest each rep.' },
+        { name:'Barbell Row',                  muscles:'Back, Biceps',                    cue:'Primary upper pull. Hinge and control descent.' },
+      ],
+      acc: [
+        { name:'Overhead Press',               muscles:'Shoulders, Triceps' },
+        { name:'Romanian Deadlift',            muscles:'Hamstrings, Glutes' },
+        { name:'Pull-Up',                      muscles:'Lats, Biceps' },
+        { name:'Barbell Curl',                 muscles:'Biceps' },
+        { name:'Tricep Pushdown',              muscles:'Triceps' },
+        { name:'Lateral Raise',                muscles:'Side Delts' },
+        { name:'Hip Thrust',                   muscles:'Glutes' },
+        { name:'Calf Raise',                   muscles:'Calves' },
+      ],
+    },
+    dumbbells: {
+      main: [
+        { name:'Goblet Squat',                 muscles:'Quads, Glutes' },
+        { name:'DB Bench Press',               muscles:'Chest, Triceps' },
+        { name:'DB Row',                       muscles:'Back, Biceps' },
+      ],
+      acc: [
+        { name:'DB Overhead Press',            muscles:'Shoulders' },
+        { name:'DB RDL',                       muscles:'Hamstrings' },
+        { name:'DB Curl',                      muscles:'Biceps' },
+        { name:'DB Tricep Extension',          muscles:'Triceps' },
+        { name:'DB Lateral Raise',             muscles:'Side Delts' },
+        { name:'DB Hip Thrust',                muscles:'Glutes' },
+      ],
+    },
+    home: {
+      main: [
+        { name:'Bodyweight Squat',             muscles:'Quads, Glutes' },
+        { name:'Push-Up',                      muscles:'Chest, Triceps' },
+        { name:'Inverted Row or Pull-Up',      muscles:'Back, Biceps' },
+      ],
+      acc: [
+        { name:'Pike Push-Up',                 muscles:'Shoulders' },
+        { name:'Hip Thrust',                   muscles:'Glutes' },
+        { name:'Chin-Up',                      muscles:'Biceps' },
+        { name:'Diamond Push-Up',              muscles:'Triceps' },
+        { name:'Walking Lunge',                muscles:'Quads' },
+        { name:'Calf Raise',                   muscles:'Calves' },
+      ],
+    },
   },
 }
 
 const WARMUPS = {
-  Push:        ['5 min treadmill or jumping jacks','Arm circles × 20 each direction','Band pull-aparts × 15','2 sets at 50% working weight × 10'],
-  Pull:        ['5 min light cardio','Dead hangs × 20 sec','Band rows × 15','2 sets at 50% working weight × 10'],
-  Legs:        ['5 min bike or brisk walk','Leg swings × 15 each leg','Bodyweight squat × 15','2 sets at 50% working weight × 8'],
-  Upper:       ['5 min light cardio','Arm circles + shoulder rolls','Band pull-aparts × 15','2 warm-up sets per main lift'],
-  Lower:       ['5 min bike or walk','Hip circles × 15 each direction','Glute bridges × 15','2 sets at 50% for squat or deadlift'],
-  'Full Body': ['5 min light cardio','Hip + shoulder circles × 15','Bodyweight squat × 10','2 warm-up sets per main exercise'],
+  Push:        ['5 min treadmill or jumping jacks','Arm circles × 20 each direction','Band pull-aparts × 15','Incline DB press warm-up — 4 sets at 50% working weight × 10'],
+  Pull:        ['5 min light cardio','Dead hangs × 30 sec × 2','Band pull-aparts × 15','Close-grip pulldown warm-up — 4 sets at 50% working weight × 10'],
+  Legs:        ['5 min bike or brisk walk','Leg swings × 15 each leg (front/back + side/side)','Bodyweight squat × 15 — pause 2 sec at bottom','Squat or leg press warm-up — 4 sets building to working weight'],
+  Upper:       ['5 min light cardio','Arm circles + shoulder rolls × 20','Band pull-aparts × 15','2 warm-up sets per main lift at 50% working weight'],
+  Lower:       ['5 min bike or walk','Hip circles × 15 each direction','Glute bridges × 15','2 warm-up sets for squat + 2 for deadlift at 50% working weight'],
+  'Full Body': ['5 min light cardio','Hip + shoulder mobility circles × 15','Bodyweight squat × 10 + push-up × 10','2 warm-up sets per main exercise at 50% working weight'],
 }
 
 const COOLDOWNS = {
-  Push: 'Chest, shoulders, and triceps. Hold each stretch 30–45 seconds.',
-  Pull: 'Lats, biceps, and rear delts. Hold each stretch 30–45 seconds.',
-  Legs: 'Quads, hamstrings, and glutes. Hold each stretch 30–45 seconds.',
-  Upper: 'Chest, back, and shoulders. Hold each stretch 30–45 seconds.',
-  Lower: 'Quads, hamstrings, and calves. Hold each stretch 30–45 seconds.',
-  'Full Body': 'Full body stretch — focus on hips, chest, and back.',
+  Push:        'Chest stretch (doorway or cable) · Shoulder cross-body stretch · Tricep overhead stretch. Hold 30–45 sec each. Breathe into the stretch.',
+  Pull:        'Lat stretch (hang or overhead) · Bicep wall stretch · Rear delt cross-body. Hold 30–45 sec each.',
+  Legs:        'Quad stretch (standing) · Hamstring stretch (lying) · Glute/piriformis stretch (pigeon pose). Hold 45–60 sec each.',
+  Upper:       'Chest · Lats · Rear delts · Biceps. Hold each stretch 30–45 sec. Focus on whatever feels tightest.',
+  Lower:       'Quad · Hamstring · Hip flexor · Calf. Hold each 45 sec. Roll the quads and hamstrings if possible.',
+  'Full Body': 'Full-body stretch sequence — hips, chest, lats, hamstrings. Spend 5 full minutes here.',
+}
+
+// ─── CARDIO RECOMMENDATIONS (post-workout, fat loss + recomp) ─────────────────
+// Y3T: cardio is still needed — cardiac health, digestion, recovery.
+// Less cardio needed with Y3T due to higher training intensity.
+const CARDIO_RECS = {
+  fat_loss: {
+    Push:  { type:'Incline Treadmill Walk or Stairmaster', duration:'20–25 min', intensity:'Moderate — conversational pace. Heart rate 120–140 bpm. This is active recovery, not sprinting.' },
+    Pull:  { type:'Rowing Machine or Bike', duration:'20–25 min', intensity:'Moderate — heart rate 120–140 bpm. Rowing complements back training with full-body low-impact movement.' },
+    Legs:  { type:'Bike (low impact to protect legs)', duration:'15–20 min', intensity:'Low-moderate — legs are fatigued. Keep it easy. Heart rate 110–130 bpm.' },
+    Upper: { type:'Stairmaster or Incline Walk', duration:'20–25 min', intensity:'Moderate. Focus on breathing. 120–140 bpm.' },
+    Lower: { type:'Bike (seated, easy)', duration:'10–15 min', intensity:'Very low intensity. Legs are already spent. This is just blood flow.' },
+    'Full Body': { type:'Walk or Bike', duration:'15–20 min', intensity:'Easy pace. 110–130 bpm. Recovery focused.' },
+  },
+  recomposition: {
+    Push:  { type:'Incline Treadmill Walk', duration:'15–20 min', intensity:'Low-moderate. Recomp cardio is about staying active, not burning out. 110–130 bpm.' },
+    Pull:  { type:'Bike or Rowing Machine', duration:'15–20 min', intensity:'Moderate. 120–140 bpm. Keep energy in reserve for muscle retention.' },
+    Legs:  { type:'Bike (easy)', duration:'10–15 min', intensity:'Very easy post-leg session. Just flush the legs.' },
+    Upper: { type:'Stairmaster or Walk', duration:'15–20 min', intensity:'Moderate. 120–135 bpm.' },
+    Lower: { type:'Easy Walk', duration:'10–15 min', intensity:'Light recovery only. Don\'t push it after legs.' },
+    'Full Body': { type:'Walk or Bike', duration:'15 min', intensity:'Light. 110–130 bpm.' },
+  },
+}
+
+// ─── Y3T VOLUME SYSTEM ────────────────────────────────────────────────────────
+// Y3T 3-week rotating cycle:
+// Week 1 (W1): Lower reps, higher sets, 3–5 sec eccentric. Heavy compound focus.
+//   → 6–12 reps, 12–16 working sets total per session, rest 75–90 sec
+// Week 2 (W2): Moderate reps, moderate sets, 2–3 sec eccentric.
+//   → 14–18 reps, 8–14 working sets total, rest 90 sec
+// Week 3 (W3): High reps, lower sets, drop sets/supersets, 1–2 sec eccentric.
+//   → 20–30 reps (or drop sets of 15–20 per drop), rest 120 sec
+// Cycle repeats. Progressive overload tracked within each week type, not across weeks.
+
+function getY3TWeek(weekNumber) {
+  // 3-week rolling cycle
+  const cycle = ((weekNumber - 1) % 3) + 1
+  return cycle // 1, 2, or 3
+}
+
+function getY3TVolumeParams(goal, level, y3tWeek) {
+  // Strength stays fixed — not Y3T
+  if (goal === 'strength') {
+    const map = {
+      beginner:     { sets:3, repsMin:4,  repsMax:6,  rest:180, eccentric:'2–3 sec', tempo:'Standard', note:'Add weight when top of range hit on all sets.' },
+      intermediate: { sets:4, repsMin:3,  repsMax:5,  rest:240, eccentric:'2–3 sec', tempo:'Standard', note:'Add weight when top of range hit on all sets.' },
+      advanced:     { sets:5, repsMin:1,  repsMax:5,  rest:300, eccentric:'2–3 sec', tempo:'Standard', note:'Add weight when top of range hit on all sets.' },
+    }
+    return map[level]
+  }
+
+  // Y3T weeks for muscle_gain, fat_loss, recomposition
+  const levelSets = { beginner: -1, intermediate: 0, advanced: 1 } // set modifier
+  const mod = levelSets[level] || 0
+
+  if (y3tWeek === 1) {
+    // Heavy week — compound focus, slower eccentrics, higher volume
+    return {
+      sets:     4 + mod,
+      repsMin:  goal === 'fat_loss' ? 8  : 6,
+      repsMax:  goal === 'fat_loss' ? 14 : 12,
+      rest:     goal === 'fat_loss' ? 75 : 90,
+      eccentric: level === 'beginner' ? '3–4 sec' : '4–5 sec',
+      tempo:    'Slow descent · 1 sec pause at stretch · explosive push',
+      dropSet:  false,
+      note:     'Y3T Week 1 — Heavy. Chase strength. Push to last 1–2 reps in reserve. Same weight until top of rep range is hit on all sets, then add weight.',
+    }
+  }
+
+  if (y3tWeek === 2) {
+    // Moderate week — blend of compounds and isolation
+    return {
+      sets:     3 + mod,
+      repsMin:  14,
+      repsMax:  18,
+      rest:     90,
+      eccentric: '2–3 sec',
+      tempo:    'Controlled descent · 1 sec pause · steady push',
+      dropSet:  false,
+      note:     'Y3T Week 2 — Moderate. Use less weight than W1. Focus on feeling the muscle. Chase the pump. Track reps — beat W2 numbers next cycle.',
+    }
+  }
+
+  // Week 3 — high rep, drop sets, intensity techniques
+  return {
+    sets:     goal === 'fat_loss' ? 2 + mod : 3 + mod,
+    repsMin:  goal === 'fat_loss' ? 15 : 20,
+    repsMax:  goal === 'fat_loss' ? 25 : 30,
+    rest:     120,
+    eccentric: '1–2 sec',
+    tempo:    'Faster tempo — volume creates TUT · Rest-pause when needed',
+    dropSet:  true,
+    note:     'Y3T Week 3 — High rep / Drop sets. Push to absolute failure with rest-pause. Each set: go to failure, pause 2–3 sec under load, grind out more reps. Track total reps — beat this next cycle.',
+  }
 }
 
 // ─── BUILD WORKOUT FROM PROFILE ───────────────────────────────────────────────
@@ -711,50 +1095,70 @@ function buildWorkout(day, userProfile) {
   const equip = equipment || 'gym'
   const exGroup = EX_DB[day]?.[equip] || EX_DB[day]?.['gym'] || EX_DB['Push']['gym']
 
-  const volMap = {
-    muscle_gain:   { beginner:{sets:3,repsMin:8,repsMax:12,rest:90}, intermediate:{sets:4,repsMin:6,repsMax:12,rest:120}, advanced:{sets:5,repsMin:5,repsMax:12,rest:180} },
-    fat_loss:      { beginner:{sets:3,repsMin:10,repsMax:15,rest:60}, intermediate:{sets:4,repsMin:10,repsMax:15,rest:60}, advanced:{sets:4,repsMin:10,repsMax:15,rest:45} },
-    strength:      { beginner:{sets:3,repsMin:4,repsMax:6,rest:180}, intermediate:{sets:4,repsMin:3,repsMax:5,rest:240}, advanced:{sets:5,repsMin:1,repsMax:5,rest:300} },
-    recomposition: { beginner:{sets:3,repsMin:8,repsMax:15,rest:90}, intermediate:{sets:4,repsMin:6,repsMax:12,rest:90}, advanced:{sets:4,repsMin:6,repsMax:12,rest:120} },
-  }
-  const vol = volMap[goal]?.[level] || volMap['muscle_gain']['intermediate']
+  const y3tWeek = getY3TWeek(week || 1)
+  const vol = getY3TVolumeParams(goal, level, y3tWeek)
   const isLower = ['Legs','Lower'].includes(day)
-  const addLbs  = isLower ? 10 : 5
+  const addLbs = isLower ? 10 : 5
+
+  // Week label for display
+  const weekLabels = { 1:'Week 1 — Heavy', 2:'Week 2 — Moderate', 3:'Week 3 — High Rep' }
+  const y3tLabel = goal === 'strength' ? '' : ` · Y3T ${weekLabels[y3tWeek]}`
+
+  const dropSetNote = vol.dropSet
+    ? ' DROP SET: do your reps, reduce weight 20–30%, keep going immediately. Rest-pause at failure — hold weight under tension 2–3 sec, grind more reps.'
+    : ''
 
   const mainLifts = exGroup.main.map((ex, i) => ({
     id: `main_${i}`,
     name: ex.name,
     muscles: ex.muscles,
     sets: vol.sets,
-    reps: `${vol.repsMin}–${vol.repsMax}`,
+    reps: vol.dropSet ? `${vol.repsMin}–${vol.repsMax} (+ drop set)` : `${vol.repsMin}–${vol.repsMax}`,
     rest: vol.rest,
-    rir: level === 'beginner' ? 2 : 1,
+    rir: level === 'beginner' ? 2 : y3tWeek === 3 ? 0 : 1,
     cue: ex.cue || 'Focus on form and controlled movement.',
+    eccentric: vol.eccentric,
+    tempo: vol.tempo,
     prevSession: null,
-    progression: `When you hit ${vol.repsMax} reps on ALL sets, add ${addLbs} lbs next session.`,
+    progression: vol.note + dropSetNote,
   }))
 
-  const accessories = exGroup.acc.slice(0,3).map((ex, i) => ({
+  // Accessories: pick 4 from the acc list (more variety than before)
+  const accCount = level === 'beginner' ? 3 : 4
+  const accessories = exGroup.acc.slice(0, accCount).map((ex, i) => ({
     id: `acc_${i}`,
     name: ex.name,
     muscles: ex.muscles,
-    sets: Math.max(vol.sets - 1, 3),
-    reps: `${vol.repsMin + 2}–${vol.repsMax + 2}`,
-    rest: Math.max(vol.rest - 30, 45),
-    rir: level === 'beginner' ? 2 : 1,
-    cue: ex.cue || 'Controlled movement, feel the muscle working.',
+    sets: Math.max(vol.sets - 1, 2),
+    reps: vol.dropSet
+      ? `${vol.repsMin}–${vol.repsMax} (drop set)`
+      : `${vol.repsMin + 2}–${vol.repsMax + 2}`,
+    rest: Math.max(vol.rest - 15, 60),
+    rir: level === 'beginner' ? 2 : y3tWeek === 3 ? 0 : 1,
+    cue: ex.cue || 'Feel the muscle. Control every rep.',
+    eccentric: vol.eccentric,
+    tempo: vol.tempo,
     prevSession: null,
-    progression: `When you hit ${vol.repsMax + 2} reps on ALL sets, add 5 lbs.`,
+    progression: `Beat your reps or weight from last ${y3tWeek === 1 ? 'heavy' : y3tWeek === 2 ? 'moderate' : 'high rep'} week.`,
   }))
+
+  // Cardio block for fat_loss and recomposition
+  const cardio = (goal === 'fat_loss' || goal === 'recomposition')
+    ? CARDIO_RECS[goal]?.[day] || CARDIO_RECS[goal]?.['Push']
+    : null
 
   return {
     day,
-    week: week || 1,
-    goal, level, equipment: equip,
-    warmUp: WARMUPS[day] || WARMUPS['Push'],
+    week:         week || 1,
+    y3tWeek,
+    y3tLabel,
+    goal, level,
+    equipment:    equip,
+    warmUp:       WARMUPS[day] || WARMUPS['Push'],
     mainLifts,
     accessories,
-    coolDown: COOLDOWNS[day] || COOLDOWNS['Push'],
+    coolDown:     COOLDOWNS[day] || COOLDOWNS['Push'],
+    cardio,
     nextWorkout: 'Check your dashboard for next workout',
   }
 }
@@ -801,13 +1205,23 @@ async function bootApp() {
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function init() {
-  const allExercises = [...WORKOUT.mainLifts, ...WORKOUT.accessories];
+  const allExercises = [...WORKOUT.mainLifts, ...WORKOUT.accessories]
 
-  // Header
-  document.getElementById('wb-title').textContent = `${WORKOUT.day} Day`;
-  document.getElementById('wb-meta').textContent  = `Week ${WORKOUT.week} · ${allExercises.length} exercises`;
-  document.getElementById('cooldown-text').textContent = WORKOUT.coolDown;
-  document.getElementById('next-workout-label').textContent = WORKOUT.nextWorkout;
+  // Header — show Y3T week label
+  document.getElementById('wb-title').textContent = `${WORKOUT.day} Day`
+  document.getElementById('wb-meta').textContent  = `Week ${WORKOUT.week}${WORKOUT.y3tLabel} · ${allExercises.length} exercises`
+  document.getElementById('cooldown-text').textContent = WORKOUT.coolDown
+  document.getElementById('next-workout-label').textContent = WORKOUT.nextWorkout
+
+  // Show cardio block if applicable
+  const cardioSection = document.getElementById('cardio-section')
+  if (WORKOUT.cardio && cardioSection) {
+    const c = WORKOUT.cardio
+    cardioSection.style.display = 'block'
+    document.getElementById('cardio-type').textContent     = c.type
+    document.getElementById('cardio-duration').textContent = c.duration
+    document.getElementById('cardio-intensity').textContent = c.intensity
+  }
 
   // Count total sets
   allExercises.forEach(ex => {
