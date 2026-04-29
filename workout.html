@@ -545,6 +545,42 @@ body::before{
   to{opacity:1;transform:translateY(0);}
 }
 
+
+  /* Mark complete quick button */
+  .mark-complete-btn{
+    width:calc(100% - 36px);
+    padding:12px;
+    background:transparent;
+    border:1px dashed var(--border2);
+    border-radius:10px;
+    color:var(--muted2);
+    font-family:'DM Sans',sans-serif;
+    font-size:13px;font-weight:500;
+    cursor:pointer;
+    transition:all 0.2s;
+    margin:0 18px 16px;
+    display:none;
+    text-align:center;
+  }
+  .exercise-card.open .mark-complete-btn{display:block;}
+  .mark-complete-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .mark-complete-btn.done-quick{
+    background:rgba(232,255,71,0.06);
+    border-color:rgba(232,255,71,0.3);
+    color:var(--accent);
+  }
+  .tempo-badge{
+    margin:0 18px 12px;
+    padding:8px 12px;
+    background:#0d1a00;
+    border-radius:8px;
+    border-left:2px solid var(--accent);
+    font-size:12px;color:var(--muted2);
+    line-height:1.5;
+    display:none;
+  }
+  .exercise-card.open .tempo-badge{display:block;}
+
 /* ─── COOLDOWN ────────────────────────────────────────── */
 .cooldown-card{
   background:var(--surface);
@@ -623,15 +659,7 @@ body::before{
   </div>
   <div id="accessories-container"></div>
 
-  <!-- COOLDOWN -->
-  <div class="section-label" style="margin-top:28px;">Cool-down</div>
-  <div class="cooldown-card">
-    <div class="cooldown-icon">🧘</div>
-    <div>
-      <div class="cooldown-title">5-minute stretch</div>
-      <div class="cooldown-sub" id="cooldown-text">Focus on chest, shoulders, and triceps. Hold each stretch 30–45 seconds. Slow your breathing.</div>
-    </div>
-  </div>
+
 
   <!-- POST-WORKOUT CARDIO (fat loss + recomp only) -->
   <div id="cardio-section" style="display:none;margin-top:28px;">
@@ -678,13 +706,13 @@ const EX_DB = {
         { name:'Overhead Barbell Press',       muscles:'Shoulders, Triceps, Upper Traps', cue:'Brace core, press vertical. Lock out fully. Pause 1 sec at bottom of each rep.' },
       ],
       acc: [
+        { name:'Tricep Rope Pushdown',         muscles:'Triceps', cue:'Elbows tucked. Spread rope at bottom. Full extension. Control up.' },
+        { name:'Overhead Tricep Extension',    muscles:'Triceps (long head)', cue:'Keep elbows pointing forward. Full stretch overhead. Squeeze at top.' },
         { name:'Incline Dumbbell Fly',         muscles:'Upper Chest' },
         { name:'Pec Deck / Cable Fly',         muscles:'Chest (inner, stretch focus)' },
         { name:'Cable Lateral Raise',          muscles:'Side Delts' },
         { name:'Seated DB Lateral Raise',      muscles:'Side Delts (partial — top half)' },
-        { name:'Tricep Rope Pushdown',         muscles:'Triceps' },
         { name:'Weighted Dips',                muscles:'Triceps, Lower Chest' },
-        { name:'Overhead Tricep Extension',    muscles:'Triceps (long head)' },
         { name:'Bent-Over Rear Delt Raise',    muscles:'Rear Delts' },
       ],
     },
@@ -695,12 +723,12 @@ const EX_DB = {
         { name:'Dumbbell Overhead Press',      muscles:'Shoulders, Triceps',              cue:'Keep ribs down, slight forward lean. Pause at bottom.' },
       ],
       acc: [
+        { name:'DB Tricep Kickback',           muscles:'Triceps', cue:'Upper arm parallel to floor. Extend fully. Squeeze tricep at top.' },
+        { name:'DB Overhead Tricep Extension', muscles:'Triceps (long head)', cue:'Both hands on one DB. Full overhead stretch. Elbows in.' },
         { name:'Dumbbell Fly',                 muscles:'Chest' },
         { name:'Incline Dumbbell Fly',         muscles:'Upper Chest' },
         { name:'DB Lateral Raise',             muscles:'Side Delts' },
         { name:'DB Front Raise',               muscles:'Front Delts' },
-        { name:'DB Tricep Kickback',           muscles:'Triceps' },
-        { name:'DB Overhead Tricep Extension', muscles:'Triceps (long head)' },
         { name:'Bent-Over DB Rear Delt Fly',   muscles:'Rear Delts' },
         { name:'DB Shrug',                     muscles:'Traps' },
       ],
@@ -712,9 +740,9 @@ const EX_DB = {
         { name:'Decline Push-Up',              muscles:'Upper Chest, Shoulders',          cue:'Feet elevated, hands below chest. Control all the way down.' },
       ],
       acc: [
-        { name:'Diamond Push-Up',              muscles:'Triceps, Inner Chest' },
+        { name:'Tricep Dip',                   muscles:'Triceps', cue:'Shoulders down. Lower until 90°. Push through palms. Lean forward slightly for more chest.' },
+        { name:'Diamond Push-Up',              muscles:'Triceps, Inner Chest', cue:'Hands in diamond shape. Elbows track backward not outward.' },
         { name:'Wide Push-Up',                 muscles:'Outer Chest' },
-        { name:'Tricep Dip',                   muscles:'Triceps' },
         { name:'Archer Push-Up',               muscles:'Chest (unilateral)' },
         { name:'Wall Handstand Hold',          muscles:'Shoulders, Triceps' },
         { name:'Close-Grip Push-Up',           muscles:'Triceps' },
@@ -730,12 +758,12 @@ const EX_DB = {
         { name:'Bent-Over Dumbbell Row',       muscles:'Lats, Rhomboids, Biceps',         cue:'Chest supported or braced. Full stretch at bottom. Elbow to ceiling.' },
       ],
       acc: [
+        { name:'Barbell Curl',                 muscles:'Biceps', cue:'Full dead hang at bottom. Curl to chin. Slow descent 3 sec. No swinging.' },
+        { name:'Hammer Curl',                  muscles:'Brachialis, Biceps', cue:'Neutral grip. Slow and controlled. Full extension at bottom.' },
         { name:'Seated Cable Row (close grip)',muscles:'Mid Back, Rhomboids' },
         { name:'Face Pull',                    muscles:'Rear Delt, Rotator Cuff' },
         { name:'Straight-Arm Cable Pulldown',  muscles:'Lats' },
-        { name:'Barbell Curl',                 muscles:'Biceps' },
         { name:'Incline Dumbbell Curl',        muscles:'Biceps (long head stretch)' },
-        { name:'Hammer Curl',                  muscles:'Brachialis, Biceps' },
         { name:'EZ-Bar Preacher Curl',         muscles:'Biceps (peak)' },
         { name:'Rack Pulls',                   muscles:'Upper Back, Traps, Spinal Erectors' },
       ],
@@ -747,9 +775,9 @@ const EX_DB = {
         { name:'Incline DB Hyper Row',         muscles:'Mid Back, Rhomboids, Rear Delt',  cue:'Face down on incline. Row DBs up keeping elbows wide.' },
       ],
       acc: [
+        { name:'DB Curl',                      muscles:'Biceps', cue:'Supinate at top. Slow descent. Full extension every rep.' },
+        { name:'Hammer Curl',                  muscles:'Brachialis', cue:'Neutral grip all the way. Focus on the brachialis.' },
         { name:'DB Rear Delt Fly',             muscles:'Rear Delts, Rhomboids' },
-        { name:'DB Curl',                      muscles:'Biceps' },
-        { name:'Hammer Curl',                  muscles:'Brachialis' },
         { name:'Incline DB Curl',              muscles:'Biceps (long head)' },
         { name:'DB Shrug',                     muscles:'Traps' },
         { name:'DB Upright Row',               muscles:'Side Delts, Traps' },
@@ -762,9 +790,10 @@ const EX_DB = {
         { name:'Chin-Up',                      muscles:'Biceps, Lats',                    cue:'Supinated grip. Full range. Slow descent for maximum bicep tension.' },
       ],
       acc: [
+        { name:'Chin-Up',                      muscles:'Biceps, Lats', cue:'Supinated grip. Full range. Slow descent for max bicep tension.' },
+        { name:'Towel Bicep Curl',             muscles:'Biceps', cue:'Step on towel. Curl up with both hands. Control descent.' },
         { name:'Band Pull-Apart',              muscles:'Rear Delt, External Rotators' },
         { name:'Band Face Pull',               muscles:'Rear Delt, Upper Traps' },
-        { name:'Towel Bicep Curl',             muscles:'Biceps' },
         { name:'Table Row',                    muscles:'Back, Biceps' },
         { name:'Dead Hang',                    muscles:'Lat activation, grip' },
         { name:'Negative Pull-Up',             muscles:'Lats, Biceps' },
@@ -1052,13 +1081,13 @@ function getY3TVolumeParams(goal, level, y3tWeek) {
     // Heavy week — compound focus, slower eccentrics, higher volume
     return {
       sets:     4 + mod,
-      repsMin:  goal === 'fat_loss' ? 8  : 6,
-      repsMax:  goal === 'fat_loss' ? 14 : 12,
-      rest:     goal === 'fat_loss' ? 75 : 90,
+      repsMin:  4,
+      repsMax:  6,
+      rest:     90,
       eccentric: level === 'beginner' ? '3–4 sec' : '4–5 sec',
       tempo:    'Slow descent · 1 sec pause at stretch · explosive push',
       dropSet:  false,
-      note:     'Y3T Week 1 — Heavy. Chase strength. Push to last 1–2 reps in reserve. Same weight until top of rep range is hit on all sets, then add weight.',
+      note:     'Y3T Week 1 — Heavy (4–6 reps). Chase max strength. 4–5 sec descent. Push to 1–2 reps in reserve. Add weight when you hit 6 reps on ALL sets.',
     }
   }
 
@@ -1066,26 +1095,26 @@ function getY3TVolumeParams(goal, level, y3tWeek) {
     // Moderate week — blend of compounds and isolation
     return {
       sets:     3 + mod,
-      repsMin:  14,
-      repsMax:  18,
+      repsMin:  8,
+      repsMax:  12,
       rest:     90,
       eccentric: '2–3 sec',
       tempo:    'Controlled descent · 1 sec pause · steady push',
       dropSet:  false,
-      note:     'Y3T Week 2 — Moderate. Use less weight than W1. Focus on feeling the muscle. Chase the pump. Track reps — beat W2 numbers next cycle.',
+      note:     'Y3T Week 2 — Moderate (8–12 reps). Less weight than W1. Focus on the pump and mind-muscle connection. Beat your W2 numbers from last cycle.',
     }
   }
 
   // Week 3 — high rep, drop sets, intensity techniques
   return {
     sets:     goal === 'fat_loss' ? 2 + mod : 3 + mod,
-    repsMin:  goal === 'fat_loss' ? 15 : 20,
-    repsMax:  goal === 'fat_loss' ? 25 : 30,
+    repsMin:  15,
+    repsMax:  25,
     rest:     120,
     eccentric: '1–2 sec',
     tempo:    'Faster tempo — volume creates TUT · Rest-pause when needed',
     dropSet:  true,
-    note:     'Y3T Week 3 — High rep / Drop sets. Push to absolute failure with rest-pause. Each set: go to failure, pause 2–3 sec under load, grind out more reps. Track total reps — beat this next cycle.',
+    note:     'Y3T Week 3 — Light/High rep (15–25 reps). Drop sets on every exercise. Go to failure, rest-pause 2–3 sec under load, grind more reps. Track total reps — beat it next cycle.',
   }
 }
 
@@ -1210,7 +1239,6 @@ function init() {
   // Header — show Y3T week label
   document.getElementById('wb-title').textContent = `${WORKOUT.day} Day`
   document.getElementById('wb-meta').textContent  = `Week ${WORKOUT.week}${WORKOUT.y3tLabel} · ${allExercises.length} exercises`
-  document.getElementById('cooldown-text').textContent = WORKOUT.coolDown
   document.getElementById('next-workout-label').textContent = WORKOUT.nextWorkout
 
   // Show cardio block if applicable
@@ -1308,6 +1336,12 @@ function renderExercises(exercises, containerId, isAcc) {
         </div>
 
         <div class="ex-cue">${ex.cue}</div>
+
+        <div class="tempo-badge">⏱ <strong>Tempo:</strong> ${ex.eccentric || '2–3 sec'} descent · ${ex.tempo || 'Controlled'}</div>
+
+        <button class="mark-complete-btn" id="mc-${ex.id}" onclick="markExerciseComplete('${ex.id}')">
+          ✓ Mark as complete (no log needed)
+        </button>
 
         <div class="prev-perf">
           <div class="prev-perf-label">Last session</div>
@@ -1568,6 +1602,36 @@ async function saveSession(durationSec, setsCount, totalVol) {
     console.warn('Could not save session:', err.message)
   }
 }
+
+// ─── MARK EXERCISE COMPLETE (no log) ─────────────────────────────────────────
+function markExerciseComplete(id) {
+  const btn = document.getElementById(`mc-${id}`)
+  const card = document.getElementById(`card-${id}`)
+  
+  // Mark all sets as done with placeholder values
+  if (state.loggedSets[id]) {
+    state.loggedSets[id].forEach((_, i) => {
+      state.loggedSets[id][i] = { weight: 0, reps: 0, done: true }
+      const logBtn = document.getElementById(`log-${id}-${i}`)
+      if (logBtn) logBtn.classList.add('done')
+      const row = document.getElementById(`row-${id}-${i}`)
+      if (row) row.classList.add('logged')
+    })
+  }
+
+  btn.textContent = '✓ Exercise complete'
+  btn.classList.add('done-quick')
+  card.classList.add('completed')
+
+  updateProgress()
+
+  // Auto advance to next exercise
+  const allExercises = [...WORKOUT.mainLifts, ...WORKOUT.accessories]
+  const currentIdx = allExercises.findIndex(e => e.id === id)
+  const nextEx = allExercises[currentIdx + 1]
+  if (nextEx) setTimeout(() => toggleExercise(nextEx.id), 400)
+}
+
 
 // Call bootApp defined above
 bootApp()
