@@ -543,9 +543,34 @@
   <!-- All screens -->
   <div class="screens">
 
-    <!-- ── SCREEN 1: GOAL ─────────────────────────────── -->
+        <!-- ── SCREEN 1: GENDER ──────────────────────────────── -->
     <div class="screen active" id="screen-1">
       <div class="q-label">Step 1</div>
+      <h1 class="q-title">Biological sex?</h1>
+      <p class="q-sub">Used to calculate your calorie and macro targets accurately using the Mifflin-St Jeor formula.</p>
+      <div class="options" id="opts-gender">
+        <div class="opt" data-key="gender" data-val="male" onclick="select(this)">
+          <div class="opt-icon">♂️</div>
+          <div class="opt-text">
+            <div class="opt-title">Male</div>
+            <div class="opt-desc">Higher BMR baseline</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt" data-key="gender" data-val="female" onclick="select(this)">
+          <div class="opt-icon">♀️</div>
+          <div class="opt-text">
+            <div class="opt-title">Female</div>
+            <div class="opt-desc">Adjusted BMR and protein targets</div>
+          </div>
+          <div class="opt-check"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 2: GOAL ─────────────────────────────── -->
+    <div class="screen" id="screen-2">
+      <div class="q-label">Step 2</div>
       <h1 class="q-title">What's your main goal?</h1>
       <p class="q-sub">We'll build everything around this.</p>
       <div class="options" id="opts-goal">
@@ -585,8 +610,8 @@
     </div>
 
     <!-- ── SCREEN 2: LEVEL ────────────────────────────── -->
-    <div class="screen" id="screen-2">
-      <div class="q-label">Step 2</div>
+    <div class="screen" id="screen-3">
+      <div class="q-label">Step 3</div>
       <h1 class="q-title">Your experience level?</h1>
       <p class="q-sub">Be honest — your plan will be more effective.</p>
       <div class="options" id="opts-level">
@@ -618,8 +643,8 @@
     </div>
 
     <!-- ── SCREEN 3: DAYS PER WEEK ────────────────────── -->
-    <div class="screen" id="screen-3">
-      <div class="q-label">Step 3</div>
+    <div class="screen" id="screen-4">
+      <div class="q-label">Step 4</div>
       <h1 class="q-title">Days per week?</h1>
       <p class="q-sub">How many days can you realistically commit to?</p>
       <div class="days-grid" id="days-grid">
@@ -632,8 +657,8 @@
     </div>
 
     <!-- ── SCREEN 4: EQUIPMENT ────────────────────────── -->
-    <div class="screen" id="screen-4">
-      <div class="q-label">Step 4</div>
+    <div class="screen" id="screen-5">
+      <div class="q-label">Step 5</div>
       <h1 class="q-title">What equipment do you have?</h1>
       <p class="q-sub">Your exercises will match what's available.</p>
       <div class="options" id="opts-equipment">
@@ -665,8 +690,8 @@
     </div>
 
     <!-- ── SCREEN 5: BODY STATS ───────────────────────── -->
-    <div class="screen" id="screen-5">
-      <div class="q-label">Step 5</div>
+    <div class="screen" id="screen-6">
+      <div class="q-label">Step 6</div>
       <h1 class="q-title">Your body stats</h1>
       <p class="q-sub">Used to calibrate starting weights and track progress.</p>
       <div class="inputs-row">
@@ -695,8 +720,8 @@
     </div>
 
     <!-- ── SCREEN 6: BODY TYPE (optional) ────────────── -->
-    <div class="screen" id="screen-6">
-      <div class="q-label">Step 6 – Optional</div>
+    <div class="screen" id="screen-7">
+      <div class="q-label">Step 7 – Optional</div>
       <h1 class="q-title">Body type?</h1>
       <p class="q-sub">Helps fine-tune volume and nutrition notes. Skip if unsure.</p>
       <div class="options" id="opts-bodytype">
@@ -728,8 +753,8 @@
     </div>
 
     <!-- ── SCREEN 7: ACTIVITY LEVEL ─────────────────────── -->
-    <div class="screen" id="screen-7">
-      <div class="q-label">Step 7</div>
+    <div class="screen" id="screen-8">
+      <div class="q-label">Step 8</div>
       <h1 class="q-title">Daily activity level?</h1>
       <p class="q-sub">Outside of your workouts — your job, lifestyle, movement. Used to calculate your calories.</p>
       <div class="options" id="opts-activity">
@@ -769,11 +794,12 @@
     </div>
 
     <!-- ── SCREEN 8: REVIEW ───────────────────────────── -->
-    <div class="screen" id="screen-8">
-      <div class="q-label">Step 8</div>
+    <div class="screen" id="screen-9">
+      <div class="q-label">Step 9</div>
       <h1 class="q-title">Looks good?</h1>
       <p class="q-sub">Review your answers before we generate your plan.</p>
       <div class="review-card" id="review-card">
+        <div class="review-row"><span class="review-key">Sex</span><span class="review-val" id="rv-gender">–</span></div>
         <div class="review-row"><span class="review-key">Goal</span><span class="review-val accent" id="rv-goal">–</span></div>
         <div class="review-row"><span class="review-key">Level</span><span class="review-val" id="rv-level">–</span></div>
         <div class="review-row"><span class="review-key">Days / week</span><span class="review-val" id="rv-days">–</span></div>
@@ -786,7 +812,7 @@
     </div>
 
     <!-- ── SCREEN 9: GENERATING ───────────────────────── -->
-    <div class="screen" id="screen-9">
+    <div class="screen" id="screen-10">
       <div class="generate-wrap" id="gen-wrap">
         <div class="gen-ring"></div>
         <div class="gen-title">Building your program…</div>
@@ -855,13 +881,13 @@ const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let currentStep = 1;
-const TOTAL_STEPS = 8; // steps 1-8, then screen 9 = generate, screen 10 = macros
+const TOTAL_STEPS = 9; // steps 1-9 (gender added as step 1), screen 10 = generate
 
 const profile = {
-  goal: null, level: null, daysPerWeek: null,
+  gender: null, goal: null, level: null, daysPerWeek: null,
   equipment: null, weight: null, height: null, bodyType: null,
   activity: null,
-  macros: null, // calculated at the end
+  macros: null,
 };
 
 const labels = {
@@ -869,6 +895,7 @@ const labels = {
   level:     { beginner:'Beginner', intermediate:'Intermediate', advanced:'Advanced' },
   equipment: { gym:'Full gym', dumbbells:'Dumbbells only', home:'Bodyweight / minimal' },
   bodyType:  { ectomorph:'Ectomorph', mesomorph:'Mesomorph', endomorph:'Endomorph', null:'Not specified' },
+  gender:    { male:'Male', female:'Female' },
   activity:  { sedentary:'Sedentary', lightly_active:'Lightly active', active:'Active', very_active:'Very active' },
 };
 
@@ -897,14 +924,15 @@ function checkCurrent() {
   msg.textContent = '';
   let valid = false;
 
-  if      (currentStep === 1) valid = !!profile.goal;
-  else if (currentStep === 2) valid = !!profile.level;
-  else if (currentStep === 3) valid = !!profile.daysPerWeek;
-  else if (currentStep === 4) valid = !!profile.equipment;
-  else if (currentStep === 5) valid = checkStats();
-  else if (currentStep === 6) valid = true; // body type optional
-  else if (currentStep === 7) valid = !!profile.activity;
-  else if (currentStep === 8) valid = true; // review
+  if      (currentStep === 1) valid = !!profile.gender;
+  else if (currentStep === 2) valid = !!profile.goal;
+  else if (currentStep === 3) valid = !!profile.level;
+  else if (currentStep === 4) valid = !!profile.daysPerWeek;
+  else if (currentStep === 5) valid = !!profile.equipment;
+  else if (currentStep === 6) valid = checkStats();
+  else if (currentStep === 7) valid = true; // body type optional
+  else if (currentStep === 8) valid = !!profile.activity;
+  else if (currentStep === 9) valid = true; // review
 
   btn.disabled = !valid;
   return valid;
@@ -934,7 +962,7 @@ function checkStats() {
 // ─── NAVIGATION ───────────────────────────────────────────────────────────────
 function nextStep() {
   if (!checkCurrent()) return;
-  if (currentStep === 8) { startGeneration(); return; }
+  if (currentStep === 9) { startGeneration(); return; }
 
   const current = document.getElementById(`screen-${currentStep}`);
   current.classList.add('exit');
@@ -972,10 +1000,10 @@ function updateUI() {
 
   btnBack.style.display = currentStep > 1 ? 'block' : 'none';
 
-  if (currentStep === 8) {
+  if (currentStep === 9) {
     btnNext.textContent = 'Generate my program →';
     populateReview();
-  } else if (currentStep === 9) {
+  } else if (currentStep === 10) {
     bottomBar.style.display = 'none';
     return;
   } else {
@@ -988,6 +1016,7 @@ function updateUI() {
 
 // ─── REVIEW POPULATION ────────────────────────────────────────────────────────
 function populateReview() {
+  document.getElementById('rv-gender').textContent  = labels.gender[profile.gender] || '–';
   document.getElementById('rv-goal').textContent    = labels.goal[profile.goal] || '–';
   document.getElementById('rv-level').textContent   = labels.level[profile.level] || '–';
   document.getElementById('rv-days').textContent    = profile.daysPerWeek ? `${profile.daysPerWeek} days` : '–';
@@ -1008,17 +1037,41 @@ function populateReview() {
 // Deficit: -400 to -500 cals for 0.5–1% bodyweight loss/week
 
 function calculateMacros() {
-  const weight = parseFloat(profile.weight);
-  const goal   = profile.goal;
-  const level  = profile.level;
-  const act    = profile.activity;
+  const weightLbs = parseFloat(profile.weight);
+  const goal      = profile.goal;
+  const level     = profile.level;
+  const act       = profile.activity;
+  const gender    = profile.gender || 'male';
 
-  // Activity multiplier midpoints from Helms
-  const actMult = { sedentary: 1.45, lightly_active: 1.65, active: 1.85, very_active: 2.05 };
-  const mult = actMult[act] || 1.65;
+  // Convert height from ft/in string to inches
+  const heightStr = profile.height || "5'10"";
+  const ftMatch   = heightStr.match(/(\d+)/g) || ['5','10'];
+  const totalInches = (parseInt(ftMatch[0]) * 12) + (parseInt(ftMatch[1] || 0));
+
+  // Convert to metric for Mifflin-St Jeor
+  const weightKg = weightLbs * 0.453592;
+  const heightCm = totalInches * 2.54;
+
+  // Age estimate — default 30 (no age in onboarding, can be added later)
+  const age = 30;
+
+  // Mifflin-St Jeor BMR (most accurate formula, used by Helms)
+  // Male:   BMR = (10 × kg) + (6.25 × cm) − (5 × age) + 5
+  // Female: BMR = (10 × kg) + (6.25 × cm) − (5 × age) − 161
+  let bmr;
+  if (gender === 'male') {
+    bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) + 5;
+  } else {
+    bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) - 161;
+  }
+
+  // Activity multiplier (Harris-Benedict scale, aligned with Helms)
+  // Note: workout days are NOT counted — this is lifestyle activity only
+  const actMult = { sedentary: 1.2, lightly_active: 1.375, active: 1.55, very_active: 1.725 };
+  const mult = actMult[act] || 1.375;
 
   // TDEE
-  const tdee = Math.round(weight * 10 * mult);
+  const tdee = Math.round(bmr * mult);
 
   // Calorie target based on goal
   let calories;
@@ -1034,7 +1087,9 @@ function calculateMacros() {
   }
 
   // Protein (g) — higher in cut to preserve muscle, moderate in surplus
-  const proteinPerLb = (goal === 'fat_loss') ? 1.2 : (goal === 'recomposition') ? 1.0 : 0.9;
+  // Women: slightly lower protein targets (body composition differences)
+  const proteinBase = gender === 'female' ? 0.85 : 1.0;
+  const proteinPerLb = (goal === 'fat_loss') ? proteinBase * 1.2 : (goal === 'recomposition') ? proteinBase : proteinBase * 0.9;
   const protein = Math.round(weight * proteinPerLb);
   const proteinCals = protein * 4;
 
@@ -1079,8 +1134,8 @@ function startGeneration() {
   const prev = document.getElementById(`screen-${currentStep}`);
   prev.classList.add('exit');
   setTimeout(() => prev.classList.remove('active','exit'), 350);
-  currentStep = 9;
-  const genScreen = document.getElementById('screen-9');
+  currentStep = 10;
+  const genScreen = document.getElementById('screen-10');
   genScreen.classList.add('active');
   updateUI();
 
@@ -1088,7 +1143,7 @@ function startGeneration() {
   profile.macros = calculateMacros();
 
   // Animate generation steps
-  const steps = ['gs-1','gs-2','gs-3','gs-4','gs-5','gs-6'];
+  const steps = ['gs-1','gs-2','gs-3','gs-4','gs-5','gs-6']; // animate gen steps
   steps.forEach((id, i) => {
     setTimeout(() => {
       document.getElementById(id).classList.add('done');
@@ -1146,6 +1201,7 @@ async function gotoDashboard() {
       .from('user_profiles')
       .upsert({
         user_id:       user.id,
+        gender:        profile.gender,
         goal:          profile.goal,
         level:         profile.level,
         days_per_week: profile.daysPerWeek,

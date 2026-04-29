@@ -377,6 +377,84 @@ nav{
 .fade-up:nth-child(5){animation-delay:0.25s;}
 .fade-up:nth-child(6){animation-delay:0.3s;}
 .fade-up:nth-child(7){animation-delay:0.35s;}
+
+  .hidden-status { display: none; }
+  .today-cta-secondary {
+    display:inline-flex;align-items:center;gap:8px;
+    background:transparent;
+    color:#0a0a0a;
+    border:2px solid rgba(0,0,0,0.2);
+    border-radius:12px;
+    padding:14px 20px;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:15px;font-weight:700;
+    cursor:pointer;
+    transition:background 0.15s;
+    letter-spacing:0.5px;
+  }
+  .today-cta-secondary:hover{background:rgba(0,0,0,0.1);}
+  /* Settings modal */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.8);
+    z-index:200;display:none;align-items:flex-end;justify-content:center;
+    backdrop-filter:blur(4px);
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-sheet{
+    width:100%;max-width:600px;
+    background:var(--surface);
+    border-radius:20px 20px 0 0;
+    border:1px solid var(--border2);
+    padding:28px 24px 48px;
+    max-height:85vh;overflow-y:auto;
+  }
+  .modal-handle{
+    width:40px;height:4px;border-radius:99px;
+    background:var(--border2);margin:0 auto 24px;
+  }
+  .modal-title{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:24px;letter-spacing:2px;color:var(--accent);
+    margin-bottom:24px;
+  }
+  .setting-group{margin-bottom:24px;}
+  .setting-label{
+    font-size:11px;text-transform:uppercase;letter-spacing:2px;
+    color:var(--muted2);margin-bottom:10px;font-weight:600;
+  }
+  .setting-options{display:flex;flex-wrap:wrap;gap:8px;}
+  .setting-opt{
+    padding:10px 16px;
+    background:#0a0a0a;
+    border:1px solid var(--border2);
+    border-radius:99px;
+    font-size:13px;font-weight:500;color:var(--muted2);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .setting-opt.selected{
+    background:var(--accent-dim);
+    border-color:rgba(232,255,71,0.4);
+    color:var(--accent);
+  }
+  .setting-opt:hover{border-color:#444;color:var(--text);}
+  .btn-save-settings{
+    width:100%;padding:16px;
+    background:var(--accent);color:#0a0a0a;
+    border:none;border-radius:var(--radius);
+    font-family:'Bebas Neue',sans-serif;
+    font-size:18px;letter-spacing:1px;
+    cursor:pointer;margin-top:8px;
+    transition:background 0.15s;
+  }
+  .btn-save-settings:hover{background:#f5ff6e;}
+  .btn-cancel-settings{
+    width:100%;padding:14px;
+    background:transparent;color:var(--muted2);
+    border:1px solid var(--border);border-radius:var(--radius);
+    font-family:'DM Sans',sans-serif;font-size:15px;
+    cursor:pointer;margin-top:8px;
+    transition:all 0.15s;
+  }
 </style>
 </head>
 <body>
@@ -387,6 +465,8 @@ nav{
     <div class="logo">BUILT BY JT</div>
     <div class="nav-right">
       <div class="streak-badge"><span class="fire">🔥</span><span id="streak-count">5</span> day streak</div>
+      <button onclick="openMacros()" style="background:var(--surface);border:1px solid var(--border2);border-radius:99px;padding:6px 14px;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--accent);transition:all 0.15s;letter-spacing:0.5px;" title="View macros">🥩 Macros</button>
+      <button onclick="openSettings()" style="background:var(--surface);border:1px solid var(--border2);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--muted2);transition:color 0.15s;" title="Edit plan">⚙</button>
       <div class="avatar" id="avatar-initials" onclick="logOut()" title="Log out">JD</div>
     </div>
   </nav>
@@ -452,6 +532,110 @@ nav{
     <div class="prog-bars" id="prog-bars"></div>
   </div>
 
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-modal" onclick="closeSettingsOnBg(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit Your Plan</div>
+
+    <div class="setting-group">
+      <div class="setting-label">Goal</div>
+      <div class="setting-options" id="set-goal">
+        <div class="setting-opt" data-group="goal" data-val="muscle_gain" onclick="selectSetting(this)">Build Muscle</div>
+        <div class="setting-opt" data-group="goal" data-val="fat_loss" onclick="selectSetting(this)">Lose Fat</div>
+        <div class="setting-opt" data-group="goal" data-val="strength" onclick="selectSetting(this)">Get Stronger</div>
+        <div class="setting-opt" data-group="goal" data-val="recomposition" onclick="selectSetting(this)">Recomposition</div>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <div class="setting-label">Days per week</div>
+      <div class="setting-options" id="set-days">
+        <div class="setting-opt" data-group="days" data-val="2" onclick="selectSetting(this)">2 days</div>
+        <div class="setting-opt" data-group="days" data-val="3" onclick="selectSetting(this)">3 days</div>
+        <div class="setting-opt" data-group="days" data-val="4" onclick="selectSetting(this)">4 days</div>
+        <div class="setting-opt" data-group="days" data-val="5" onclick="selectSetting(this)">5 days</div>
+        <div class="setting-opt" data-group="days" data-val="6" onclick="selectSetting(this)">6 days</div>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <div class="setting-label">Equipment</div>
+      <div class="setting-options" id="set-equipment">
+        <div class="setting-opt" data-group="equipment" data-val="gym" onclick="selectSetting(this)">Full Gym</div>
+        <div class="setting-opt" data-group="equipment" data-val="dumbbells" onclick="selectSetting(this)">Dumbbells Only</div>
+        <div class="setting-opt" data-group="equipment" data-val="home" onclick="selectSetting(this)">Bodyweight / Home</div>
+      </div>
+    </div>
+
+    <button class="btn-save-settings" onclick="saveSettings()">SAVE & REGENERATE PLAN</button>
+    <button class="btn-cancel-settings" onclick="closeSettings()">Cancel</button>
+  </div>
+</div>
+
+<!-- MACROS MODAL -->
+<div class="modal-overlay" id="macros-modal" onclick="closeMacrosOnBg(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Daily Nutrition Targets</div>
+
+    <!-- Macro grid -->
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px;" id="macro-grid-display">
+      <div style="background:#0a0a0a;border:1px solid rgba(232,255,71,0.3);border-radius:14px;padding:20px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#e8ff47;line-height:1;" id="md-calories">–</div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#555;margin-top:4px;">Calories</div>
+      </div>
+      <div style="background:#0a0a0a;border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#f0f0f0;line-height:1;" id="md-protein">–</div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#555;margin-top:4px;">Protein (g)</div>
+      </div>
+      <div style="background:#0a0a0a;border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#f0f0f0;line-height:1;" id="md-carbs">–</div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#555;margin-top:4px;">Carbs (g)</div>
+      </div>
+      <div style="background:#0a0a0a;border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:#f0f0f0;line-height:1;" id="md-fat">–</div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#555;margin-top:4px;">Fat (g)</div>
+      </div>
+    </div>
+
+    <!-- Goal note -->
+    <div style="background:#0d1a00;border:1px solid rgba(232,255,71,0.2);border-left:3px solid #e8ff47;border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:20px;">
+      <div style="font-size:13px;color:#e8ff47;font-weight:600;margin-bottom:4px;" id="md-goal-note">–</div>
+      <div style="font-size:12px;color:#555;" id="md-tdee">Maintenance: – kcal</div>
+    </div>
+
+    <!-- Macro breakdown bar -->
+    <div style="margin-bottom:20px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#555;margin-bottom:8px;">Macro split</div>
+      <div style="height:8px;border-radius:99px;overflow:hidden;display:flex;gap:2px;" id="macro-bar">
+        <div id="bar-protein" style="background:#e8ff47;height:100%;border-radius:99px 0 0 99px;transition:width 0.5s;"></div>
+        <div id="bar-carbs"   style="background:#f1a535;height:100%;transition:width 0.5s;"></div>
+        <div id="bar-fat"     style="background:#ff6b35;height:100%;border-radius:0 99px 99px 0;transition:width 0.5s;"></div>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:8px;">
+        <div style="font-size:12px;color:#777;">🟡 Protein</div>
+        <div style="font-size:12px;color:#777;">🟠 Carbs</div>
+        <div style="font-size:12px;color:#777;">🔴 Fat</div>
+      </div>
+    </div>
+
+    <!-- Protein tips -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:600;color:#f0f0f0;margin-bottom:8px;">💡 Hitting your protein</div>
+      <div style="font-size:13px;color:#777;line-height:1.7;" id="md-protein-tip">–</div>
+    </div>
+
+    <!-- Recalculate section -->
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:13px;color:#777;margin-bottom:12px;">Changed your weight or activity level? Recalculate your macros.</div>
+      <button class="btn-save-settings" onclick="recalculateMacros()" id="recalc-btn">RECALCULATE MACROS</button>
+    </div>
+
+    <button class="btn-cancel-settings" onclick="closeMacros()">Close</button>
+  </div>
+</div>
 </div><!-- /page -->
 
 <script>
@@ -609,7 +793,10 @@ function renderTodayCard(today, volume) {
       <div class="today-exercises">
         ${allEx.map(e => `<div class="ex-pill">${e}</div>`).join('')}
       </div>
-      <button class="today-cta">Start workout <span class="arrow">→</span></button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="today-cta">Start workout <span class="arrow">→</span></button>
+        <button class="today-cta-secondary" onclick="markTodayComplete(event, '${today.name}')">✓ Mark complete</button>
+      </div>
     </div>`;
 }
 
@@ -640,8 +827,8 @@ function renderWorkoutList(weekStatus, volume) {
         </div>`;
     }
     const ex = EXERCISE_DB[d.name] || EXERCISE_DB['Push'];
-    const statusClass = d.status === 'done' ? 'done-badge' : 'upcoming';
-    const statusText  = d.status === 'done' ? '✓ Done' : d.status === 'today' ? 'Today' : 'Up next';
+    const statusClass = d.status === 'done' ? 'done-badge' : d.status === 'today' ? 'upcoming' : 'hidden-status';
+    const statusText  = d.status === 'done' ? '✓ Done' : d.status === 'today' ? 'Today' : '';
     const todayClass  = d.status === 'today' ? 'today-item' : '';
     const doneClass   = d.status === 'done'  ? 'completed'  : '';
     return `
@@ -794,7 +981,7 @@ async function loadAndInit() {
 
     if (planData) {
       profile.currentWeek = planData.week_number || 1
-      profile.macros      = planData.macros
+      profile.macros      = planData.macros || null
     }
 
     profile.streak      = sessions ? sessions.length : 0
