@@ -1001,6 +1001,224 @@ async function logOut() {
   window.location.href = 'index.html'
 }
 
+// ─── MACROS MODAL ─────────────────────────────────────────────────────────────
+function openMacros() {
+  const m = profile.macros
+  if (!m) { alert('No macro data found. Please complete onboarding first.'); return; }
+
+  document.getElementById('md-calories').textContent = m.calories || '–'
+  document.getElementById('md-protein').textContent  = (m.protein || '–') + 'g'
+  document.getElementById('md-carbs').textContent    = (m.carbs   || '–') + 'g'
+  document.getElementById('md-fat').textContent      = (m.fat     || '–') + 'g'
+  document.getElementById('md-tdee').textContent     = 'Maintenance: ' + (m.tdee || '–') + ' kcal'
+
+  const diff = (m.calories||0) - (m.tdee||0)
+  const goalNotes = {
+    muscle_gain:   '+' + diff + ' cal surplus — fuel for muscle growth',
+    fat_loss:      diff + ' cal deficit — ~1 lb/week fat loss',
+    recomposition: 'Maintenance calories — body recomp approach',
+    strength:      '+' + diff + ' cal — fuel performance and recovery',
+  }
+  document.getElementById('md-goal-note').textContent = goalNotes[profile.goal] || ''
+
+  const totalCals = (m.protein||0)*4 + (m.carbs||0)*4 + (m.fat||0)*9
+  if (totalCals > 0) {
+    document.getElementById('bar-protein').style.width = ((m.protein*4)/totalCals*100).toFixed(1) + '%'
+    document.getElementById('bar-carbs').style.width   = ((m.carbs*4)/totalCals*100).toFixed(1) + '%'
+    document.getElementById('bar-fat').style.width     = ((m.fat*9)/totalCals*100).toFixed(1) + '%'
+  }
+
+  const prot = m.protein || 150
+  const meals = Math.round(prot / 40)
+  document.getElementById('md-protein-tip').textContent =
+    prot + 'g protein = roughly ' + meals + ' meals with 35–45g protein each. Focus on chicken, eggs, Greek yogurt, lean beef, fish, and protein shakes to hit this daily.'
+
+  document.getElementById('macros-modal').classList.add('show')
+}
+
+function closeMacros() {
+  document.getElementById('macros-modal').classList.remove('show')
+}
+
+function closeMacrosOnBg(e) {
+  if (e.target.id === 'macros-modal') closeMacros()
+}
+
+async function recalculateMacros() {
+  const btn = document.getElementById('recalc-btn')
+  btn.textContent = 'RECALCULATING...'
+  btn.disabled = true
+
+  try {
+    const { data: { user } } = await _supabase.auth.getUser()
+    const { data: profileData } = await _supabase
+      .from('user_profiles').select('*').eq('user_id', user.id).single()
+
+    if (!profileData) throw new Error('Profile not found')
+
+    const weightLbs = profileData.weight_lbs || profile.weight || 175
+    const heightStr = profileData.height || profile.height || "5'10\""
+    const ftNums    = (heightStr.match(/\d+/g) || ['5','10'])
+    const totalIn   = (parseInt(ftNums[0])*12) + (parseInt(ftNums[1]||0))
+    const weightKg  = weightLbs * 0.453592
+    const heightCm  = totalIn * 2.54
+    const age       = 30
+    const gender    = profileData.gender || 'male'
+    const goal      = profileData.goal || profile.goal
+    const level     = profileData.level || profile.level
+    const act       = profileData.activity || profile.activity || 'lightly_active'
+
+    const bmr = gender === 'male'
+      ? (10*weightKg) + (6.25*heightCm) - (5*age) + 5
+      : (10*weightKg) + (6.25*heightCm) - (5*age) - 161
+
+    const actMult = { sedentary:1.2, lightly_active:1.375, active:1.55, very_active:1.725 }
+    const tdee = Math.round(bmr * (actMult[act] || 1.375))
+
+    const surplusMap = { beginner:250, intermediate:175, advanced:100 }
+    const calories = goal === 'muscle_gain' ? tdee + (surplusMap[level]||175)
+                   : goal === 'fat_loss'    ? tdee - 450
+                   : goal === 'strength'    ? tdee + 150
+                   : tdee
+
+    const protBase  = gender === 'female' ? 0.85 : 1.0
+    const protPerLb = goal === 'fat_loss' ? protBase*1.2 : goal === 'recomposition' ? protBase : protBase*0.9
+    const protein   = Math.round(weightLbs * protPerLb)
+    const fatPct    = goal === 'fat_loss' ? 0.20 : goal === 'muscle_gain' ? 0.25 : 0.22
+    const fat       = Math.round((calories * fatPct) / 9)
+    const carbs     = Math.round(Math.max(calories - protein*4 - fat*9, 0) / 4)
+    const realCals  = protein*4 + fat*9 + carbs*4
+    const newMacros = { calories:realCals, protein, fat, carbs, tdee }
+
+    const { data: plan } = await _supabase
+      .from('workout_plans').select('id')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending:false })
+      .limit(1).single()
+
+    if (plan) {
+      await _supabase.from('workout_plans').update({ macros: newMacros }).eq('id', plan.id)
+    }
+
+    profile.macros = newMacros
+    openMacros()
+    btn.textContent = '✓ UPDATED!'
+    setTimeout(() => { btn.textContent = 'RECALCULATE MACROS'; btn.disabled = false; }, 2000)
+
+  } catch(err) {
+    alert('Could not recalculate: ' + err.message)
+    btn.textContent = 'RECALCULATE MACROS'
+    btn.disabled = false
+  }
+}
+
+// ─── SETTINGS MODAL ───────────────────────────────────────────────────────────
+const pendingSettings = {}
+
+function openSettings() {
+  const current = {
+    goal:      profile.goal,
+    days:      String(profile.daysPerWeek),
+    equipment: profile.equipment,
+  }
+  Object.entries(current).forEach(([group, val]) => {
+    document.querySelectorAll('[data-group="' + group + '"]').forEach(el => {
+      el.classList.toggle('selected', el.dataset.val === val)
+    })
+    pendingSettings[group] = val
+  })
+  document.getElementById('settings-modal').classList.add('show')
+}
+
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('show')
+}
+
+function closeSettingsOnBg(e) {
+  if (e.target.id === 'settings-modal') closeSettings()
+}
+
+function selectSetting(el) {
+  const group = el.dataset.group
+  document.querySelectorAll('[data-group="' + group + '"]').forEach(o => o.classList.remove('selected'))
+  el.classList.add('selected')
+  pendingSettings[group] = el.dataset.val
+}
+
+async function saveSettings() {
+  const btn = document.querySelector('.btn-save-settings')
+  btn.textContent = 'SAVING...'
+  btn.disabled = true
+
+  try {
+    const { data: { user } } = await _supabase.auth.getUser()
+
+    await _supabase.from('user_profiles').upsert({
+      user_id:       user.id,
+      goal:          pendingSettings.goal      || profile.goal,
+      days_per_week: parseInt(pendingSettings.days) || profile.daysPerWeek,
+      equipment:     pendingSettings.equipment  || profile.equipment,
+    }, { onConflict: 'user_id' })
+
+    const splitsMap = {
+      2: ['Full Body','Rest','Full Body','Rest','Rest','Rest','Rest'],
+      3: ['Push','Rest','Pull','Rest','Legs','Rest','Rest'],
+      4: ['Push','Pull','Rest','Legs','Upper','Rest','Rest'],
+      5: ['Push','Pull','Legs','Rest','Push','Pull','Rest'],
+      6: ['Push','Pull','Legs','Push','Pull','Legs','Rest'],
+    }
+    const days = parseInt(pendingSettings.days) || profile.daysPerWeek
+    const goal = pendingSettings.goal || profile.goal
+
+    await _supabase.from('workout_plans').insert({
+      user_id:     user.id,
+      split_key:   days + 'day_' + goal,
+      schedule:    splitsMap[days] || splitsMap[4],
+      macros:      profile.macros,
+      week_number: 1,
+    })
+
+    closeSettings()
+    window.location.reload()
+  } catch(err) {
+    alert('Could not save settings: ' + err.message)
+    btn.textContent = 'SAVE & REGENERATE PLAN'
+    btn.disabled = false
+  }
+}
+
+async function markTodayComplete(e, dayName) {
+  e.stopPropagation()
+  const btn = e.target
+  btn.textContent = 'Saving...'
+  btn.disabled = true
+
+  try {
+    const { data: { user } } = await _supabase.auth.getUser()
+    const { data: plan } = await _supabase
+      .from('workout_plans').select('id, week_number')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1).single()
+
+    await _supabase.from('sessions').insert({
+      user_id:      user.id,
+      plan_id:      plan ? plan.id : null,
+      day_label:    dayName,
+      week_number:  plan ? plan.week_number : 1,
+      duration_sec: 0,
+      total_volume: 0,
+      logs:         {},
+    })
+
+    window.location.reload()
+  } catch(err) {
+    btn.textContent = '✓ Mark complete'
+    btn.disabled = false
+    console.error(err)
+  }
+}
+
 // Start the app — called last so all functions are defined
 bootApp()
 </script>
